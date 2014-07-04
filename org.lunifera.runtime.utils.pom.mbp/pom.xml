@@ -14,20 +14,23 @@
 
 	<parent>
 		<groupId>org.lunifera.releng.maven</groupId>
-		<artifactId>org.lunifera.releng.maven.parent.mbp.aggregator</artifactId>
+		<artifactId>org.lunifera.releng.maven.parent.mbp</artifactId>
 		<version>0.7.2-SNAPSHOT</version>
 		<relativePath />
 	</parent>
 
 	<groupId>org.lunifera.runtime</groupId>
-	<artifactId>org.lunifera.runtime.utils.aggregator</artifactId>
-	<name>Lunifera Subsystems - Runtime Utilities Projects</name>
-	<description>A group of projects that provides runtime utilities to be used with Lunifera OSGi Subsystems framework.</description>
+	<artifactId>org.lunifera.runtime.utils.pom.mbp</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Lunifera Subsystems - Runtime Utilities - Parent POM for bundles</name>
+	<description>A POM parent aimed to setup the build of all Lunifera Kernel bundle projects.</description>
 	<packaging>pom</packaging>
 
 	<properties>
-		<lunifera.aggregator.name>lunifera-runtime-utils</lunifera.aggregator.name>
+		<!-- default value is http://localhost:9000 -->
+		<sonar.host.url>http://88.198.33.16:9000/</sonar.host.url>
 		<license.copyrightOwners>C4biz Softwares ME, Loetz KG</license.copyrightOwners>
+		<lunifera.aggregator.name>lunifera-runtime-utils</lunifera.aggregator.name>
 	</properties>
 
 	<url>${distribution.site.url}</url>
@@ -47,8 +50,18 @@
 		<tag>HEAD</tag>
 	</scm>
 
-	<modules>
-		<module>org.lunifera.runtime.utils.pom.mbp</module>
-		<module>org.lunifera.runtime.utils.paxexam</module>
-	</modules>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<configuration>
+						<siteDirectory>${project.basedir}../src/site</siteDirectory>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
 </project>
