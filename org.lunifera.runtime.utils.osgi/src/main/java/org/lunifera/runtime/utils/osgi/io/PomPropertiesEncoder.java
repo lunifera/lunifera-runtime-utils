@@ -1,4 +1,4 @@
-package org.lunifera.runtime.utils.osgi;
+package org.lunifera.runtime.utils.osgi.io;
 
 /*
  * #%L

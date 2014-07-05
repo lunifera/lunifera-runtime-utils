@@ -18,7 +18,7 @@
 		<relativePath>../org.lunifera.runtime.utils.pom.mbp/pom.xml</relativePath>
 	</parent>
 
-	<artifactId>org.lunifera.runtime.utils.osgi</artifactId>
+	<artifactId>org.lunifera.runtime.utils.osgi.io</artifactId>
 	<name>Lunifera Subsystems - Runtime Utilities for OSGi</name>
 	<description>A bundle component that provides some general utilities classes for OSGi.</description>
 	<packaging>bundle</packaging>
@@ -53,7 +53,7 @@
 					<instructions>
 						<Import-Package>org.osgi.framework;version="[1.7,2)"</Import-Package>
 						<Export-Package>
-							org.lunifera.runtime.utils.osgi.*
+							org.lunifera.runtime.utils.osgi.io.*
 						</Export-Package>
 						<Eclipse-ExtensibleAPI>true</Eclipse-ExtensibleAPI>
 					</instructions>
