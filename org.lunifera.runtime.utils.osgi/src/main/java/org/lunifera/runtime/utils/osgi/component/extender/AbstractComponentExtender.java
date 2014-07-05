@@ -17,7 +17,7 @@ package org.lunifera.runtime.utils.osgi.component.extender;
 import java.util.Dictionary;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.lunifera.runtime.utils.osgi.component.AbstractComponentCompendium;
+import org.lunifera.runtime.utils.osgi.component.AbstractComponentWithCompendium;
 import org.lunifera.runtime.utils.osgi.component.ExceptionComponentLifecycle;
 import org.lunifera.runtime.utils.osgi.component.ExceptionComponentUnrecoveredActivationError;
 import org.osgi.framework.Bundle;
@@ -47,7 +47,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
  * @since 0.0.1
  */
 public abstract class AbstractComponentExtender extends
-		AbstractComponentCompendium implements ComponentExtenderService {
+		AbstractComponentWithCompendium implements ComponentExtenderService {
 
 	/**
 	 * This class is used to track 'extendee' bundles.

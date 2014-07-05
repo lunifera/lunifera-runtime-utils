@@ -14,7 +14,7 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * #L%
  */
 
-import org.lunifera.runtime.utils.osgi.component.AbstractComponentCompendium;
+import org.lunifera.runtime.utils.osgi.component.AbstractComponentWithCompendium;
 import org.lunifera.runtime.utils.osgi.component.ExceptionComponentLifecycle;
 
 /**
@@ -23,7 +23,7 @@ import org.lunifera.runtime.utils.osgi.component.ExceptionComponentLifecycle;
  * @since 0.0.1
  */
 public abstract class AbstractComponentFactoryContributionHandler extends
-		AbstractComponentCompendium implements ContributionHandlerService {
+		AbstractComponentWithCompendium implements ContributionHandlerService {
 
 	private ExtensionHandlingStrategy extensionHandlingStrategy;
 	private ContributionItemResourceType contributionItemResourceType;
@@ -51,7 +51,7 @@ public abstract class AbstractComponentFactoryContributionHandler extends
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * org.lunifera.runtime.utils.osgi.component.AbstractComponentCompendium
+	 * org.lunifera.runtime.utils.osgi.component.AbstractComponentWithCompendium
 	 * #activate(org.osgi.service.component.ComponentContext)
 	 */
 	@Override
