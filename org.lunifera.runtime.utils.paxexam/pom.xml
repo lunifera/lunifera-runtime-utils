@@ -31,7 +31,14 @@
 			<url>${distribution.site.url}</url>
 		</site>
 	</distributionManagement>
-
+	<scm>
+		<!-- convention is that the repository's name be the same as the aggregator 
+			name -->
+		<connection>${lunifera.scm.connection}</connection>
+		<developerConnection>${lunifera.scm.connection.dev}</developerConnection>
+		<url>${lunifera.scm.url}</url>
+		<tag>HEAD</tag>
+	</scm>
 	<build>
 		<plugins>
 			<plugin>
