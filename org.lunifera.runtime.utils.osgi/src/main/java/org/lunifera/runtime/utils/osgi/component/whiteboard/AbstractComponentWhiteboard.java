@@ -1,4 +1,4 @@
-package org.lunifera.runtime.utils.osgi.component.extender;
+package org.lunifera.runtime.utils.osgi.component.whiteboard;
 
 /*
  * #%L
@@ -14,23 +14,9 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * #L%
  */
 
-/**
- * This interface are public methods of a DS extender component.
- * 
- * @author Cristiano Gavião
- * @since 0.0.1
- */
-public interface ComponentExtenderService {
+import org.lunifera.runtime.utils.osgi.component.AbstractComponentWithCompendium;
 
-    /**
-     * The manifest header used to track for contributions.
-     * 
-     * @return the header name.
-     */
-    String getExtenderContributorManifestHeader();
+public abstract class AbstractComponentWhiteboard extends
+        AbstractComponentWithCompendium {
 
-    /**
-    * Defines which bundle states should tracked.
-    */
-    int getStateMask();
 }

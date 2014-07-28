@@ -24,25 +24,25 @@ import org.osgi.framework.BundleContext;
 @RunWith(PaxExam.class)
 public class AbstractPaxexamIntegrationTestClass {
 
-	/**
-	 * Injected BundleContext
-	 */
-	@Inject
-	protected BundleContext bc;
+    /**
+     * Injected BundleContext
+     */
+    @Inject
+    protected BundleContext bc;
 
-	/**
-	 * The correct way to extend the bundles to be installed is children to call
-	 * this method directly as in the example below:
-	 * <p>
-	 * 
-	 * <code>
-	 * ...
-	 * return super.extraBundles().add(<i>myBundles()</i>); <code>
-	 * 
-	 * @return
-	 */
-	protected DefaultCompositeOption extraBundles() {
-		DefaultCompositeOption options = new DefaultCompositeOption();
-		return options;
-	}
+    /**
+     * The correct way to extend the bundles to be installed is children to call
+     * this method directly as in the example below:
+     * <p>
+     * 
+     * <code>
+     * ...
+     * return super.extraBundles().add(<i>myBundles()</i>); <code>
+     * 
+     * @return
+     */
+    protected DefaultCompositeOption extraBundles() {
+        DefaultCompositeOption options = new DefaultCompositeOption();
+        return options;
+    }
 }

@@ -19,45 +19,45 @@ package org.lunifera.runtime.utils.osgi.component;
  * @since 0.0.1
  */
 public class ExceptionComponentUnrecoveredActivationError extends
-		RuntimeException {
+        RuntimeException {
 
-	private static final long serialVersionUID = 4800465886577999271L;
+    private static final long serialVersionUID = 4800465886577999271L;
 
-	public ExceptionComponentUnrecoveredActivationError() {
-		super();
-	}
+    public ExceptionComponentUnrecoveredActivationError() {
+        super();
+    }
 
-	/**
-	 * Construct a new ExceptionRuntimeAddon with the specified message.
-	 *
-	 * @param message
-	 *            The message for the exception.
-	 */
-	public ExceptionComponentUnrecoveredActivationError(String message) {
-		super(message);
-	}
+    /**
+     * Construct a new ExceptionRuntimeAddon with the specified message.
+     *
+     * @param message
+     *            The message for the exception.
+     */
+    public ExceptionComponentUnrecoveredActivationError(String message) {
+        super(message);
+    }
 
-	/**
-	 * Construct a new ExceptionRuntimeAddon with the specified message and
-	 * cause.
-	 *
-	 * @param message
-	 *            The message for the exception.
-	 * @param cause
-	 *            The cause of the exception. May be {@code null}.
-	 */
-	public ExceptionComponentUnrecoveredActivationError(String message,
-			Throwable cause) {
-		super(message, cause);
-	}
+    /**
+     * Construct a new ExceptionRuntimeAddon with the specified message and
+     * cause.
+     *
+     * @param message
+     *            The message for the exception.
+     * @param cause
+     *            The cause of the exception. May be {@code null}.
+     */
+    public ExceptionComponentUnrecoveredActivationError(String message,
+            Throwable cause) {
+        super(message, cause);
+    }
 
-	/**
-	 * Construct a new ExceptionRuntimeAddon with the specified cause.
-	 *
-	 * @param cause
-	 *            The cause of the exception. May be {@code null}.
-	 */
-	public ExceptionComponentUnrecoveredActivationError(Throwable cause) {
-		super(cause);
-	}
+    /**
+     * Construct a new ExceptionRuntimeAddon with the specified cause.
+     *
+     * @param cause
+     *            The cause of the exception. May be {@code null}.
+     */
+    public ExceptionComponentUnrecoveredActivationError(Throwable cause) {
+        super(cause);
+    }
 }

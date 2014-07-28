@@ -14,6 +14,12 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * #L%
  */
 
+import static org.lunifera.runtime.utils.osgi.component.extender.ConstantsExtender.RESOURCE_TYPE_EMF_MODEL_FILE_RESOURCE;
+import static org.lunifera.runtime.utils.osgi.component.extender.ConstantsExtender.RESOURCE_TYPE_PROPERTIES_FILE_RESOURCE;
+import static org.lunifera.runtime.utils.osgi.component.extender.ConstantsExtender.RESOURCE_TYPE_PROPERTY_VALUE_PAIRS;
+import static org.lunifera.runtime.utils.osgi.component.extender.ConstantsExtender.RESOURCE_TYPE_SINGLE_CLASS_NAME;
+import static org.lunifera.runtime.utils.osgi.component.extender.ConstantsExtender.RESOURCE_TYPE_XTEXT_MODEL_FILE_RESOURCE;
+
 import org.osgi.framework.wiring.BundleWiring;
 
 /**
@@ -33,7 +39,7 @@ public enum ContributionItemResourceType {
      * 
      * </pre>
      */
-    EMF_MODEL_FILE_RESOURCE("emf_model_file_resource"),
+    EMF_MODEL_FILE_RESOURCE(RESOURCE_TYPE_EMF_MODEL_FILE_RESOURCE),
 
     /**
      * 
@@ -42,7 +48,7 @@ public enum ContributionItemResourceType {
      * 
      * </pre>
      */
-    XTEXT_MODEL_FILE_RESOURCE("xtext_model_file_resource"),
+    XTEXT_MODEL_FILE_RESOURCE(RESOURCE_TYPE_XTEXT_MODEL_FILE_RESOURCE),
 
     /**
      * Defines that one or more manifest header items should be treated as
@@ -64,12 +70,12 @@ public enum ContributionItemResourceType {
      * 
      * @see {@link BundleWiring#listResources(String path, String filePattern, int options)}
      */
-    PROPERTIES_FILE_RESOURCE("properties_file_resource"),
+    PROPERTIES_FILE_RESOURCE(RESOURCE_TYPE_PROPERTIES_FILE_RESOURCE),
 
     /**
      * Defines that one or more manifest header items should be treated as
      * property-value pairs. This must be used only with
-     * {@link ExtensionHandlingStrategy #PER_BUNDLE}.
+     * {@link ContributionHandlingStrategy #PER_BUNDLE}.
      * <p>
      * 
      * The developer must use a valid property-value pair separated by comma.
@@ -80,7 +86,7 @@ public enum ContributionItemResourceType {
      * Header: propertyOne:int=123,properyTwo:String=value,properyTwo:String=value
      * </pre>
      */
-    PROPERTY_VALUE_PAIRS("property_value_pairs"),
+    PROPERTY_VALUE_PAIRS(RESOURCE_TYPE_PROPERTY_VALUE_PAIRS),
 
     /**
      * The contribution is a Java class that needs to be loaded and
@@ -91,7 +97,7 @@ public enum ContributionItemResourceType {
      * 
      * </pre>
      */
-    SINGLE_CLASS_NAME("single_class_name");
+    SINGLE_CLASS_NAME(RESOURCE_TYPE_SINGLE_CLASS_NAME);
 
     public static ContributionItemResourceType fromString(String ident) {
         if (ident != null) {

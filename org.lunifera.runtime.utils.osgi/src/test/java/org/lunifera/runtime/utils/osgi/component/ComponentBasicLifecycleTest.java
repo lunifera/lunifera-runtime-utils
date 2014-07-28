@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.lunifera.runtime.utils.osgi.component.AbstractComponentBasic;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -44,8 +45,9 @@ public class ComponentBasicLifecycleTest {
             super();
         }
 
-        public AnComponent(ComponentContext componentContext) {
-            super(componentContext);
+        public AnComponent(BundleContext bundleContext,
+                ComponentContext componentContext) {
+            super(bundleContext, componentContext);
         }
     }
 
@@ -54,6 +56,9 @@ public class ComponentBasicLifecycleTest {
 
     @Mock
     ComponentContext componentContext;
+    
+    @Mock
+    BundleContext bundleContext;
 
     AnComponent concreteComponent;
 
@@ -114,7 +119,7 @@ public class ComponentBasicLifecycleTest {
 
     @Before
     public void setup() {
-        concreteComponent = spy(new AnComponent(componentContext));
+        concreteComponent = spy(new AnComponent(bundleContext, componentContext));
         when(componentContext.getProperties()).thenReturn(getMockProperties());
     }
 }

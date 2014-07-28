@@ -1,4 +1,8 @@
-package org.lunifera.runtime.utils.osgi.component.extender;
+/**
+ * @author Cristiano Gavião
+ *
+ */
+package org.lunifera.runtime.utils.osgi.component.whiteboard;
 
 /*
  * #%L
@@ -13,24 +17,3 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
-/**
- * This interface are public methods of a DS extender component.
- * 
- * @author Cristiano Gavião
- * @since 0.0.1
- */
-public interface ComponentExtenderService {
-
-    /**
-     * The manifest header used to track for contributions.
-     * 
-     * @return the header name.
-     */
-    String getExtenderContributorManifestHeader();
-
-    /**
-    * Defines which bundle states should tracked.
-    */
-    int getStateMask();
-}

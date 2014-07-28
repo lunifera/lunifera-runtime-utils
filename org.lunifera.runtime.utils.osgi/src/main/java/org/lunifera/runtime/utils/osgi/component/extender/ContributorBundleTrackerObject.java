@@ -47,7 +47,7 @@ public class ContributorBundleTrackerObject {
 
         /**
          * This constructor aims to be used with extensions using
-         * {@link ExtensionHandlingStrategy #PER_BUNDLE}.
+         * {@link ContributionHandlingStrategy #PER_BUNDLE}.
          * 
          * @param contributorBundleTrackerObject
          * @param propertiesMap
@@ -61,8 +61,8 @@ public class ContributorBundleTrackerObject {
                     contributorBundleTrackerObject.getContributorBundle()
                             .getSymbolicName());
             propertiesMap.put(EXTENDER_CONTRIBUTOR_BUNDLE_VERSION,
-                    contributorBundleTrackerObject.getContributorBundle().getVersion()
-                            .toString());
+                    contributorBundleTrackerObject.getContributorBundle()
+                            .getVersion().toString());
             propertiesMap.putAll(properties);
         }
 
@@ -75,8 +75,8 @@ public class ContributorBundleTrackerObject {
                     contributorBundleTrackerObject.getContributorBundle()
                             .getSymbolicName());
             propertiesMap.put(EXTENDER_CONTRIBUTOR_BUNDLE_VERSION,
-                    contributorBundleTrackerObject.getContributorBundle().getVersion()
-                            .toString());
+                    contributorBundleTrackerObject.getContributorBundle()
+                            .getVersion().toString());
             propertiesMap.put(EXTENDER_CONTRIBUTOR_ITEM,
                     resourceLocation.getFile());
         }

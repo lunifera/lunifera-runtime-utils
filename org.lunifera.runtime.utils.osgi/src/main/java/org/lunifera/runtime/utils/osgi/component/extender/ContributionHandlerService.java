@@ -17,15 +17,17 @@ package org.lunifera.runtime.utils.osgi.component.extender;
 import org.osgi.framework.Bundle;
 
 /**
- * A ContributionHandlerService is a common way to deal with contribution for
- * specific ContributorBundle components.
+ * A ContributionHandlerService is responsible to process the contribution
+ * resources coming from ContributorBundle components.
  * <p>
- * It works like a call back class that will be called by the Framework when
- * Bundles that match the filter (manifest header) is added, modified or removed
+ * The extender utility will bind to one registered ContributionHandlerService
+ * instance and will delegate to it the resource processing job whenever some
+ * bundle matching the extender manifest header is added, modified or removed
  * from the container.
  * <p>
- * A Contributor Bundle represents a bundle (an 'extendee') that is contributing
- * something to some other extender bundle.
+ * A Contributor Bundle represents the <i>'extendee'</i> bundle that is
+ * contributing something (using resource files) to other <i>'extendible'</i>
+ * bundle through the <i>'extender'</i> bundle.
  * 
  * @author Cristiano Gavião
  * @since 0.0.1
@@ -36,16 +38,27 @@ public interface ContributionHandlerService {
     String MANIFEST_HEADER_ITEM_TYPE = "lunifera.extender.contribution.item.resource.type";
 
     /**
+     * An extender implementation can process its contributions using different
+     * paths. The most commons are specified in
+     * {@link ContributionHandlerService}.
      * 
      * @return The handling strategy provided by this contribution handler.
      */
-    ExtensionHandlingStrategy getExtensionHandlingStrategy();
+    ContributionHandlingStrategy getContributionHandlingStrategy();
 
     /**
+     * Each extender can support one type of resource.
      * 
      * @return The type of the header item supported this contribution handler.
      */
-    ContributionItemResourceType getManifestHeaderItemType();
+    ContributionItemResourceType getContributionItemResourceType();
+
+    /**
+     * The name of this {@code ContributionHandlerService}.
+     * 
+     * @return
+     */
+    String getHandlerName();
 
     /**
      * This method is called by the BundleTracker when a specific filtered
@@ -56,8 +69,9 @@ public interface ContributionHandlerService {
      * @return
      * @throws ExceptionComponentExtenderSetup
      */
-    ContributorBundleTrackerObject onContributorBundleAddition(
-            Bundle contributorBundle, String headerName, String headerValue) throws ExceptionComponentExtenderSetup;
+    ContributorBundleTrackerObject whenContributorBundleActivated(
+            Bundle contributorBundle, String headerName, String headerValue)
+            throws ExceptionComponentExtenderSetup;
 
     /**
      * This method is called by the BundleTracker when a specific filtered
@@ -66,18 +80,18 @@ public interface ContributionHandlerService {
      * @param contributorBundleTrackerObject
      * @throws ExceptionComponentExtenderSetup
      */
-    void onContributorBundleModified(
+    void whenContributorBundleModified(
             ContributorBundleTrackerObject contributorBundleTrackerObject)
             throws ExceptionComponentExtenderSetup;
 
     /**
      * This method is called by the BundleTracker when a specific filtered
-     * bundle is removed.
+     * bundle is removed from container.
      * 
      * @param contributorBundleTrackerObject
      * @throws ExceptionComponentExtenderSetup
      */
-    void onContributorBundleRemoval(
+    void whenContributorBundleRemoved(
             ContributorBundleTrackerObject contributorBundleTrackerObject)
             throws ExceptionComponentExtenderSetup;
 

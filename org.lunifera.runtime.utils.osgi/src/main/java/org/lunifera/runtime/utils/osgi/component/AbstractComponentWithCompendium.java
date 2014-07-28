@@ -16,21 +16,22 @@ package org.lunifera.runtime.utils.osgi.component;
 
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
+import org.lunifera.runtime.utils.osgi.services.PluggableEventTracker;
+import org.lunifera.runtime.utils.osgi.services.PluggableServiceTracker;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.prefs.PreferencesService;
-import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,574 +40,669 @@ import org.slf4j.LoggerFactory;
  * event admin, preference and some others OSGi compendium services bounded at
  * activation time.
  * <p>
- * This component defines 3 life cycle events attached to its activate() and
- * deactivate() methods. This provides to children ways to define pre and post
- * operations for an activate or deactivate occurrences.
- * 
- * Unfortunately, OSGi DS Annotations don't support inheritance, so any DS
- * annotation setup shouldn't be made inside a parent abstract class, only on
- * its concrete children.<br>
- * For this reason a ServiceTracker its being used to obtain references of those
- * Compendium services instead of using a Declarative Service implementation.
+ * Unfortunately, OSGi DS Annotations don't support inheritance, so every DS
+ * annotation must be used inside concrete children classes.
  * <p>
- * Therefore, a children component extending this class just need to call
- * getLoggerService(), getPreferencesService() or getEventAdminService() methods
- * to get references to the compendium services (if they are available in the
- * container, of course).
- * <p>
- * Developers can choose to use only DS, preventing the creation of tracker
- * objects. To do that, he must override the bind method of the required service
- * in the concrete class and add a {@link Reference @Reference} annotation for
- * each override method. Doing this, the service tracker won't be created.
+ * In order to facilitate developers life it was included in this abstract
+ * component 3 methods (a bindX(), a getX() and a unbindX()). Therefore, in
+ * order to use them children classes must override the correspondent bindX()
+ * method and apply the proper @{@link Reference} annotation.
  * 
  * @author Cristiano Gavião
  * @since 0.0.1
  * 
  */
 public abstract class AbstractComponentWithCompendium extends
-		AbstractComponentBasic {
+        AbstractComponentBasic {
 
-	/**
-	 * Holds an atomic reference of a {@link EventAdmin} service.
-	 */
-	private final AtomicReference<EventAdmin> eventAdminServiceRef = new AtomicReference<EventAdmin>();
+    public static final String PROPERTY_ENABLE_INNER_SERVICE_TRACKERS = "lunifera.enable.inner.service.trackers";
 
-	/**
-	 * Service tracker for the {@link EventAdmin} service.
-	 */
-	private ServiceTracker<EventAdmin, EventAdmin> eventAdminServiceTracker;
+    /**
+     * Holds an atomic reference of a {@link ConfigurationAdmin} service.
+     */
+    private final AtomicReference<ConfigurationAdmin> configAdminServiceRef = new AtomicReference<ConfigurationAdmin>();
 
-	/**
-	 * Holds an atomic reference for the logging service {@link Logger}. Repair
-	 * that this service is not the one provided by OSGi, we are using the SLF4J
-	 * interface that is more complete and give us more flexibilities on report.
-	 */
-	private final AtomicReference<Logger> loggerServiceRef = new AtomicReference<Logger>();
+    /**
+     * Holds an atomic reference of a {@link EventAdmin} service.
+     */
+    private final AtomicReference<EventAdmin> eventAdminServiceRef = new AtomicReference<EventAdmin>();
 
-	/**
-	 * A service tracker for the logging service.
-	 */
-	private ServiceTracker<Logger, Logger> loggerServiceTracker;
+    /**
+     * Holds a set of {@link PluggableEventTracker} objects.
+     * <p>
+     * Those events will be registered and unregistered following this
+     * component's lifecycle.
+     */
+    private Set<PluggableEventTracker> eventTrackers = null;
 
-	/**
-	 * Service tracker for the {@link PreferencesService} service.
-	 */
-	private ServiceTracker<PreferencesService, PreferencesService> preferenceServiceTracker;
+    private boolean enableInnerServiceTrackers = false;
 
-	/**
-	 * Holds an atomic reference of a {@link PreferencesService} service.
-	 */
-	private final AtomicReference<PreferencesService> preferencesServiceRef = new AtomicReference<PreferencesService>();
+    /**
+     * Holds an atomic reference for the logging service {@link Logger}. Repair
+     * that this service is not the one provided by OSGi, we are using the SLF4J
+     * interface that is more complete and give us more flexibilities on report.
+     */
+    private final AtomicReference<Logger> loggerServiceRef = new AtomicReference<Logger>();
 
-	/**
-	 * DS needs a default constructor.
-	 * 
-	 */
-	public AbstractComponentWithCompendium() {
-	}
+    /**
+     * Holds an atomic reference of a {@link PreferencesService} service.
+     */
+    private final AtomicReference<PreferencesService> preferencesServiceRef = new AtomicReference<PreferencesService>();
 
-	/**
-	 * Constructor created just to help unit testing. It is not used by OSGi.
-	 * 
-	 * @param componentContext
-	 */
-	protected AbstractComponentWithCompendium(ComponentContext componentContext) {
-		super(componentContext);
-	}
+    @SuppressWarnings("rawtypes")
+    private Map<Class<?>, PluggableServiceTracker> innerPluggableServiceTrackers = null;
 
-	@Override
-	protected final void activate(ComponentContext context)
-			throws ExceptionComponentLifecycle {
+    /**
+     * DS needs a default constructor.
+     */
+    public AbstractComponentWithCompendium() {
+    }
 
-		super.activate(context);
+    /**
+     * Constructor created just to help unit testing. It is not used by OSGi.
+     * 
+     * @param componentContext
+     */
+    @SuppressWarnings("rawtypes")
+    protected AbstractComponentWithCompendium(BundleContext bundleContext,
+            ComponentContext componentContext,
+            Map<Class<?>, PluggableServiceTracker> serviceTrackers,
+            Set<PluggableEventTracker> eventTrackers) {
+        super(bundleContext, componentContext);
+        this.eventTrackers = eventTrackers;
+        this.innerPluggableServiceTrackers = serviceTrackers;
+    }
 
-		openCompendiumServiceTrackers();
-		try {
-			beforeActivate();
-		} catch (ExceptionComponentLifecycle e) {
-			error("Error before activating component.", e);
-			throw e;
-		}
+    /**
+     * Method used by Declarative Service engine to activate this component.
+     * <p>
+     * For concrete classes the activation process was divided in three parts
+     * sequentially called. <br>
+     * The first method to be called is {@link #doBeforeActivateComponent()},
+     * then the main execution in {@link #doWhenActivateComponent()} and to
+     * complete the activation process, {@link #doAfterActivateComponent()}.
+     * <p>
+     * This separation will help add-ons developers to facilitate the end users
+     * life, creating abstract classes that implements the most important parts
+     * in its before and after methods.
+     */
+    @Override
+    protected final void activate(ComponentContext context)
+            throws ExceptionComponentLifecycle {
 
-		try {
-			onActivate();
-		} catch (ExceptionComponentLifecycle e) {
-			error("Error when activating component.", e);
-			throw e;
-		}
+        super.activate(context);
 
-		try {
-			afterActivate();
-		} catch (ExceptionComponentLifecycle e) {
-			error("Error after activating component.", e);
-			throw e;
-		}
+        debug("({}) - Starting annotations processing...", getId());
+        doRuntimeAnnotationsProcessing();
 
-		trace("({}) - Activated component '{}'.", getId(), getName());
-	}
+        if (!getProperties().isEmpty()) {
+            debug("({}) - Starting properties processing...", getId());
+            doRuntimePropertiesProcessing(getProperties());
+        }
 
-	/**
-	 * To be implemented by children.
-	 */
-	public void afterActivate() throws ExceptionComponentLifecycle {
+        debug("({}) - Defining events to be tracked...", getId());
+        defineEventsToBeTracked();
+        registerDefinedEventTrackers();
 
-	}
+        Object enableTrackersObj = context.getProperties().get(
+                PROPERTY_ENABLE_INNER_SERVICE_TRACKERS);
+        enableInnerServiceTrackers = (boolean) (enableTrackersObj != null ? enableTrackersObj
+                : false);
+        if (enableInnerServiceTrackers) {
+            debug("({}) - Defining the inner services to be tracked...",
+                    getId());
+            defineInnerServicesToBeTracked();
+            openDefinedInnerServiceTrackers();
+        }
 
-	public void afterDeactivate() throws ExceptionComponentLifecycle {
+        try {
+            debug("({}) - Running the pre-activate procedure...", getId());
+            doBeforeActivateComponent();
+        } catch (ExceptionComponentLifecycle e) {
+            error("Error in the pre-activate procedure.", e);
+            throw e;
+        }
 
-	}
+        try {
+            debug("({}) - Running the activate procedure...", getId());
+            doWhenActivateComponent();
+        } catch (ExceptionComponentLifecycle e) {
+            error("Error in the activate procedure.", e);
+            throw e;
+        }
 
-	/**
-	 * To be implemented by children.
-	 */
-	public void beforeActivate() throws ExceptionComponentLifecycle {
+        try {
+            debug("({}) - Running the pos-activate procedure...", getId());
+            doAfterActivateComponent();
+        } catch (ExceptionComponentLifecycle e) {
+            error("Error in the pos-activate procedure.", e);
+            throw e;
+        }
 
-	}
+        debug("({}) - Activated component '{}'.", getId(), getName());
+    }
 
-	public void beforeDeactivate() throws ExceptionComponentLifecycle {
+    /**
+     * 
+     * @param configurationAdmin
+     */
+    protected void bindConfigurationAdmin(ConfigurationAdmin configurationAdmin) {
+        this.configAdminServiceRef.set(configurationAdmin);
+        trace("({}) - Bound ConfigurationAdmin for component '{}'.", getId(),
+                this.getClass().getSimpleName());
+    }
 
-	}
+    /**
+     * 
+     * @param eventAdmin
+     */
+    protected void bindEventAdmin(EventAdmin eventAdmin) {
+        this.eventAdminServiceRef.set(eventAdmin);
+        trace("({}) - Bound EventAdmin for component '{}'.", getId(), this
+                .getClass().getSimpleName());
+    }
 
-	/**
-	 * 
-	 * @param eventAdmin
-	 */
-	protected void bindEventAdmin(EventAdmin eventAdmin) {
-		this.eventAdminServiceRef.set(eventAdmin);
-		trace("({}) - Bound EventAdmin for component '{}'.", getId(), this
-				.getClass().getSimpleName());
-	}
+    /**
+     * 
+     * @param logger
+     */
+    protected void bindLoggerService(Logger logger) {
+        this.loggerServiceRef.set(logger);
+        trace("({}) - Bound Logger for component '{}'.", getId(), this
+                .getClass().getName());
+    }
 
-	/**
-	 * 
-	 * @param logger
-	 */
-	protected void bindLoggerService(Logger logger) {
-		this.loggerServiceRef.set(logger);
-		trace("({}) - Bound Logger for component '{}'.", getId(), this
-				.getClass().getName());
-	}
+    /**
+     * 
+     * @param preferencesService
+     */
+    protected void bindPreferencesService(PreferencesService preferencesService) {
+        this.preferencesServiceRef.set(preferencesService);
+        trace("({}) - Bound PreferencesService for component '{}'.", getId(),
+                this.getClass().getName());
+    }
 
-	/**
-	 * 
-	 * @param preferencesService
-	 */
-	protected void bindPreferencesService(PreferencesService preferencesService) {
-		this.preferencesServiceRef.set(preferencesService);
-		trace("({}) - Bound PreferencesService for component '{}'.", getId(),
-				this.getClass().getName());
-	}
+    /**
+     * Traverse the service tracker list and calls the
+     * {@link PluggableServiceTracker#close()} method for all instances.
+     */
+    protected final void closeInnerServicesTrackers() {
+        if (enableInnerServiceTrackers) {
+            for (PluggableServiceTracker<?> tracker : getInnerPluggableServiceTrackers()
+                    .values()) {
+                tracker.close();
+            }
+        }
+    }
 
-	/**
+    /**
+     * Called by the DS engine when deactivating a component.
+     */
+    @Override
+    protected final void deactivate(ComponentContext context)
+            throws ExceptionComponentLifecycle {
+        debug("({}) - deactivating the component '{}'.", getId(), getName());
+
+        try {
+            doBeforeDeactivateComponent();
+        } catch (ExceptionComponentLifecycle e) {
+            error("Error before deactivating a component.", e);
+            throw e;
+        }
+
+        try {
+            doWhenDeactivateComponent();
+        } catch (ExceptionComponentLifecycle e) {
+            error("Error when deactivating a component.", e);
+            throw e;
+        }
+
+        try {
+            doAfterDeactivateComponent();
+        } catch (ExceptionComponentLifecycle e) {
+            error("Error after deactivating a component.", e);
+            throw e;
+        }
+
+        closeInnerServicesTrackers();
+
+        unregisterEventTrackers();
+
+        innerPluggableServiceTrackers.clear();
+
+        eventTrackers.clear();
+
+        super.deactivate(context);
+    }
+
+    protected final void debug(String msg) {
+        getLoggerService().debug(msg);
+    }
+
+    protected final void debug(String format, Object... arguments) {
+        getLoggerService().debug(format, arguments);
+    }
+
+    /**
+     * A method where developer can define which {@link Event events} will be
+     * automatically tracked and properly handled by this component class.
+     * <p>
+     * Developer must use the method {@link #trackEvent(PluggableEventTracker)}
+     * to register an event to be tracked.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     */
+    protected void defineEventsToBeTracked() {
+    }
+
+    /**
+     * A method where developer can define which services will be automatically
+     * tracked by this component class.
+     * <p>
+     * Developer must use the method
+     * {@link #trackServicesWith(PluggableServiceTracker)} to register a service
+     * to be tracked.
+     * <p>
+     * To get an instance of those registered service just use the correspondent
+     * getXXX() method from this class.
+     * <p>
+     * It is aimed to be overridden by children concrete classes but don't
+     * forget to call super.defineServicesToBeTracked().
+     * 
+     * @throws InvalidSyntaxException
+     */
+    protected void defineInnerServicesToBeTracked()
+            throws ExceptionComponentLifecycle {
+
+    }
+
+    /**
+     * Called after the activate component method be run.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     */
+    protected void doAfterActivateComponent()
+            throws ExceptionComponentLifecycle {
+
+    }
+
+    /**
+     * Called before the deactivate component method be run.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     */
+    protected void doAfterDeactivateComponent()
+            throws ExceptionComponentLifecycle {
+
+    }
+
+    /**
+     * Called before the activate component method be run.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     */
+    protected void doBeforeActivateComponent()
+            throws ExceptionComponentLifecycle {
+
+    }
+
+    /**
+     * Called before the deactivate component method be run.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     */
+    protected void doBeforeDeactivateComponent()
+            throws ExceptionComponentLifecycle {
+
+    }
+
+    /**
+     * This method is a hook that could be used to process the annotations
+     * tagged in the component class declaration.
+     * <p>
+     * As this hook method will be called at the beginning of the activation
+     * procedure, values encountered here could be hold in class variables and
+     * used by other methods of the component.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     * 
+     * @param annotations
+     * 
+     * @throws Exception
+     */
+    protected void doRuntimeAnnotationsProcessing()
+            throws ExceptionComponentLifecycle {
+
+    }
+
+    /**
+     * Do the processing of the properties passed for this component at runtime.
+     * <p>
+     * This method is called in the beginning of the activation process.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     * 
+     * @param properties
+     */
+    protected void doRuntimePropertiesProcessing(
+            Dictionary<String, Object> properties) {
+        // should be implemented by concrete children.
+    }
+
+    /**
+     * This method is called by the {@link #activate(ComponentContext)} method
+     * in order to complete the activation of the child concrete component.
+     * <p>
+     * It is aimed to be overridden by children concrete classes.
+     */
+    protected void doWhenActivateComponent() throws ExceptionComponentLifecycle {
+
+    }
+
+    /**
+     * 
+     * @throws ExceptionComponentLifecycle
+     */
+    protected void doWhenDeactivateComponent()
+            throws ExceptionComponentLifecycle {
+
+    }
+
+    protected final void error(String msg) {
+        getLoggerService().error(msg);
+    }
+
+    protected final void error(String format, Object... arguments) {
+        getLoggerService().error(format, arguments);
+    }
+
+    protected final void error(String format, Throwable throwable) {
+        getLoggerService().error(format, throwable);
+    }
+
+    /**
+     * A method that returns the {@link EventAdmin} service instance.
+     * 
+     * @return the EventAdmin service instance
+     */
+    protected final ConfigurationAdmin getConfigurationAdmin() {
+        return configAdminServiceRef.get();
+    }
+
+    /**
+     * A method that returns the {@link EventAdmin} service instance.
+     * 
+     * @return the EventAdmin service instance
+     */
+    protected final EventAdmin getEventAdminService() {
+        return eventAdminServiceRef.get();
+    }
+
+    protected final Set<PluggableEventTracker> getEventTrackers() {
+        if (eventTrackers == null) {
+            eventTrackers = new HashSet<>();
+        }
+        return eventTrackers;
+    }
+
+    /**
+     * A method that returns the {@link Logger} service instance.
+     * <p>
+     * If no Logger service were registered this method will return an instance
+     * created by the {@link LoggerFactory} factory class.
+     *
+     * @return a non null logger object.
+     */
+    protected final Logger getLoggerService() {
+        if (loggerServiceRef.get() == null) {
+            loggerServiceRef.set(LoggerFactory.getLogger(this.getClass()));
+        }
+        return loggerServiceRef.get();
+    }
+
+    /**
+     * A method that returns the {@link PreferencesService} instance.
+     * <p>
+     * It can be null;
+     * 
+     * @return the preference service instance
+     */
+    protected final PreferencesService getPreferencesService() {
+
+        return preferencesServiceRef.get();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected final <S> PluggableServiceTracker<S> getInnerPluggableServiceTracker(
+            Class<S> serviceInterface) {
+        return getInnerPluggableServiceTrackers().get(serviceInterface);
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected final Map<Class<?>, PluggableServiceTracker> getInnerPluggableServiceTrackers() {
+        if (innerPluggableServiceTrackers == null) {
+            innerPluggableServiceTrackers = new HashMap<>();
+        }
+        return innerPluggableServiceTrackers;
+    }
+
+    protected final void info(String msg) {
+        getLoggerService().info(msg);
+    }
+
+    protected final void info(String format, Object... arguments) {
+        getLoggerService().info(format, arguments);
+    }
+
+    protected final boolean isIgnoreTrackers() {
+        return enableInnerServiceTrackers;
+    }
+
+    /**
+     * Traverse the service tracker list and calls the
+     * {@link PluggableServiceTracker#open()} method for all instances.
+     * 
+     * @throws Exception
      * 
      */
-	protected final void closeCompendiumServicesTrackers() {
-		if (eventAdminServiceTracker != null) {
-			eventAdminServiceTracker.close();
-			eventAdminServiceTracker = null;
-		}
-		if (preferenceServiceTracker != null) {
-			preferenceServiceTracker.close();
-			preferenceServiceTracker = null;
-		}
-		if (loggerServiceTracker != null) {
-			loggerServiceTracker.close();
-			loggerServiceTracker = null;
-		}
+    protected final void openDefinedInnerServiceTrackers()
+            throws ExceptionComponentLifecycle {
 
-	}
+        for (PluggableServiceTracker<?> serviceTracker : getInnerPluggableServiceTrackers()
+                .values()) {
+            serviceTracker.open();
+        }
+    }
 
-	@Override
-	protected final void deactivate(ComponentContext context)
-			throws ExceptionComponentLifecycle {
-		debug("({}) - deactivating component '{}'.", getId(), getName());
+    protected final void postEvent(String eventTopic) {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        postEvent(eventTopic, properties);
+    }
 
-		try {
-			beforeDeactivate();
-		} catch (ExceptionComponentLifecycle e) {
-			error("Error before activating component.", e);
-			throw e;
-		}
+    protected final void postEvent(String eventTopic, Map<String, ?> properties) {
+        Event event = new Event(eventTopic, properties);
+        getEventAdminService().postEvent(event);
+    }
 
-		try {
-			onDeactivate();
-		} catch (ExceptionComponentLifecycle e) {
-			error("Error when deactivating component.", e);
-			throw e;
-		}
+    protected final void postEvent(String eventTopic, String context) {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        // properties.put(LUNIFERA_RUNTIME_EVENT_PROPERTY_CONTEXT, context);
+        postEvent(eventTopic, properties);
+    }
 
-		try {
-			afterDeactivate();
-		} catch (ExceptionComponentLifecycle e) {
-			error("Error after activating component.", e);
-			throw e;
-		}
+    /**
+     * Traverse the event tracker list and calls the
+     * {@link PluggableEventTracker#registerEventHandler()} method for all
+     * instances.
+     * 
+     */
+    protected final void registerDefinedEventTrackers() {
+        for (PluggableEventTracker pluggableEventTracker : getEventTrackers()) {
+            pluggableEventTracker.registerEventHandler();
+        }
+    }
 
-		closeCompendiumServicesTrackers();
+    protected final void sendEvent(String eventTopic) {
+        Dictionary<String, Object> properties = new Hashtable<String, Object>();
+        sendEvent(eventTopic, properties);
+    }
 
-		super.deactivate(context);
-	}
+    protected final void sendEvent(String eventTopic,
+            Dictionary<String, ?> properties) {
+        Event event = new Event(eventTopic, properties);
+        getEventAdminService().sendEvent(event);
+    }
 
-	protected final void debug(String msg) {
-		getLoggerService().debug(msg);
-	}
+    protected final void sendEvent(String eventTopic, String context) {
+        Dictionary<String, Object> properties = new Hashtable<String, Object>();
+        // properties.put(LUNIFERA_RUNTIME_EVENT_PROPERTY_CONTEXT, context);
+        sendEvent(eventTopic, properties);
+    }
 
-	protected final void debug(String format, Object... arguments) {
-		getLoggerService().debug(format, arguments);
+    protected final void trace(String msg) {
+        getLoggerService().trace(msg);
+    }
 
-	}
+    protected final void trace(String format, Object... arguments) {
+        getLoggerService().trace(format, arguments);
+    }
 
-	protected final void error(String msg) {
-		getLoggerService().error(msg);
-	}
+    /**
+     * Includes an {@link PluggableEventTracker event tracker} into the list to
+     * be managed by this component.
+     * 
+     * @param eventTracker
+     */
+    protected final void trackEvent(PluggableEventTracker eventTracker) {
+        getEventTrackers().add(eventTracker);
+    }
 
-	protected final void error(String format, Object... arguments) {
-		getLoggerService().error(format, arguments);
-	}
+    /**
+     * Adds a service class to be tracked by this component.
+     * <p>
+     * An instance of PluggableServiceTracker
+     * 
+     * @param serviceToTrack
+     * @throws ExceptionComponentLifecycle
+     */
+    protected final <T> PluggableServiceTracker<T> trackServicesWith(
+            Class<T> serviceToTrack) throws ExceptionComponentLifecycle {
+        return trackServicesWith(serviceToTrack, null);
+    }
 
-	protected void error(String format, Throwable throwable) {
-		getLoggerService().error(format, throwable);
-	}
+    /**
+     * Adds a service class to be tracked by this component.
+     * <p>
+     * An instance of PluggableServiceTracker will be created for each
+     * interface.
+     * 
+     * @param serviceToTrack
+     *            the interface of the service to be tracked.
+     * @param filter
+     *            used to track for the service.
+     * @throws ExceptionComponentLifecycle
+     */
+    protected final <T> PluggableServiceTracker<T> trackServicesWith(
+            Class<T> serviceToTrack, String filter)
+            throws ExceptionComponentLifecycle {
+        PluggableServiceTracker<T> st = null;
+        if (!enableInnerServiceTrackers) {
+            try {
+                st = new PluggableServiceTracker<T>(serviceToTrack,
+                        getBundleContext(), filter) {
+                };
+            } catch (InvalidSyntaxException e) {
+                throw new ExceptionComponentLifecycle(e);
+            }
+            getInnerPluggableServiceTrackers().put(serviceToTrack, st);
+        }
+        return st;
+    }
 
-	/**
-	 * A method that returns the event admin service instance.
-	 * 
-	 * @return the event admin service instance
-	 */
-	public final EventAdmin getEventAdminService() {
-		return eventAdminServiceRef.get();
-	}
+    /**
+     * Adds a service class to be tracked by this component.
+     * <p>
+     * An instance of PluggableServiceTracker
+     * 
+     * @param serviceToTrack
+     * @throws InvalidSyntaxException
+     */
+    protected final <T> PluggableServiceTracker<T> trackServicesWith(
+            PluggableServiceTracker<T> plugableServiceTracker)
+            throws ExceptionComponentLifecycle {
+        getInnerPluggableServiceTrackers()
+                .put(plugableServiceTracker.getServiceType(),
+                        plugableServiceTracker);
+        return plugableServiceTracker;
+    }
 
-	/**
-	 * 
-	 * 
-	 * @return
-	 */
-	public final Logger getLoggerService() {
-		if (loggerServiceRef.get() == null) {
-			Logger logger = LoggerFactory
-					.getLogger(AbstractComponentWithCompendium.class);
-			return logger;
-		}
-		return loggerServiceRef.get();
-	}
+    /**
+     * Method called by the DS or other to unbind an instance of
+     * {@link ConfigurationAdmin} service.
+     * 
+     * @param configurationAdmin
+     */
+    protected final void unbindConfigurationAdmin(
+            ConfigurationAdmin configurationAdmin) {
+        trace("({}) - Unbound ConfigurationAdmin for component '{}'.", getId(),
+                this.getClass().getName());
+        configAdminServiceRef.compareAndSet(configurationAdmin, null);
+    }
 
-	/**
-	 * A method that returns the preference service instance.
-	 * 
-	 * @return the preference service instance
-	 */
-	public final PreferencesService getPreferencesService() {
+    /**
+     * Method called by the DS or other to unbind an instance of
+     * {@link EventAdmin} service.
+     * 
+     * @param eventAdmin
+     */
+    protected final void unbindEventAdmin(EventAdmin eventAdmin) {
+        trace("({}) - Unbound EventAdmin for component '{}'.", getId(), this
+                .getClass().getName());
+        eventAdminServiceRef.compareAndSet(eventAdmin, null);
+    }
 
-		return preferencesServiceRef.get();
-	}
+    /**
+     * Method called by the DS or other to unbind an instance of {@link Logger}
+     * service.
+     * 
+     * @param logger
+     */
+    protected final void unbindLoggerService(Logger logger) {
+        trace("({}) - Unbound Logger for component '{}'.", getId(), this
+                .getClass().getName());
+        loggerServiceRef.compareAndSet(logger, null);
+    }
 
-	protected final void info(String msg) {
-		getLoggerService().info(msg);
+    /**
+     * Method called by the DS or other to unbind an instance of
+     * {@link PreferencesService} service.
+     * 
+     * @param preferencesService
+     */
+    protected final void unbindPreferencesService(
+            PreferencesService preferencesService) {
+        trace("({}) - Unbound PreferencesService for component '{}'.", getId(),
+                this.getClass().getName());
+        preferencesServiceRef.compareAndSet(preferencesService, null);
+    }
 
-	}
+    /**
+     * Traverse the event tracker list and calls the
+     * {@link PluggableEventTracker#unregisterEventHandler()} method for all
+     * instances.
+     * 
+     */
+    protected final void unregisterEventTrackers() {
+        for (PluggableEventTracker pluggableEventTracker : getEventTrackers()) {
+            pluggableEventTracker.unregisterEventHandler();
+        }
+    }
 
-	protected final void info(String format, Object... arguments) {
-		getLoggerService().info(format, arguments);
-	}
+    protected final void warn(String msg) {
+        getLoggerService().warn(msg);
+    }
 
-	/**
-	 * To be implemented by children.
-	 */
-	public void onActivate() throws ExceptionComponentLifecycle {
-
-	}
-
-	public void onDeactivate() throws ExceptionComponentLifecycle {
-
-	}
-
-	/**
-	 * @throws Exception
-	 * 
-	 */
-	private void openCompendiumServiceTrackers()
-			throws ExceptionComponentLifecycle {
-		if (loggerServiceRef.get() == null) {
-			openTrackerForLoggingService();
-		}
-
-		if (eventAdminServiceRef.get() == null) {
-			openTrackerForEventAdminService();
-		}
-
-		if (preferencesServiceRef.get() == null) {
-			openTrackerForPreferenceService();
-		}
-	}
-
-	/**
-	 * Hook method used to setup all needed ServiceTracker (when not using DS)
-	 * 
-	 * @throws Exception
-	 * @nooverride
-	 */
-	protected boolean openTrackerForEventAdminService()
-			throws ExceptionComponentLifecycle {
-		if (eventAdminServiceTracker == null) {
-			Filter filter;
-			try {
-				filter = FrameworkUtil
-						.createFilter("(objectclass=org.osgi.service.event.EventAdmin)");
-			} catch (InvalidSyntaxException e) {
-				throw new ExceptionComponentLifecycle(e);
-			}
-			eventAdminServiceTracker = new ServiceTracker<>(getBundleContext(),
-					filter,
-					new ServiceTrackerCustomizer<EventAdmin, EventAdmin>() {
-						@Override
-						public EventAdmin addingService(
-								ServiceReference<EventAdmin> reference) {
-							EventAdmin eventAdmin = getBundleContext()
-									.getService(reference);
-							bindEventAdmin(eventAdmin);
-							return eventAdmin;
-						}
-
-						@Override
-						public void modifiedService(
-								ServiceReference<EventAdmin> reference,
-								EventAdmin service) {
-							if (getEventAdminService().equals(service)) {
-								addingService(reference);
-							}
-						}
-
-						@Override
-						public void removedService(
-								ServiceReference<EventAdmin> reference,
-								EventAdmin service) {
-							unbindEventAdmin(service);
-						}
-					});
-			eventAdminServiceTracker.open();
-		}
-		return true;
-	}
-
-	/**
-	 * 
-	 * @return
-	 * @throws Exception
-	 * @nooverride
-	 */
-	protected boolean openTrackerForLoggingService()
-			throws ExceptionComponentLifecycle {
-		if (loggerServiceTracker == null) {
-			Filter filter;
-			try {
-				filter = FrameworkUtil
-						.createFilter("(objectclass=org.slf4j.Logger)");
-			} catch (InvalidSyntaxException e) {
-				throw new ExceptionComponentLifecycle(e);
-			}
-			loggerServiceTracker = new ServiceTracker<>(getBundleContext(),
-					filter, new ServiceTrackerCustomizer<Logger, Logger>() {
-						@Override
-						public Logger addingService(
-								ServiceReference<Logger> reference) {
-							Logger logger = getBundleContext().getService(
-									reference);
-							if (logger != null)
-								bindLoggerService(logger);
-							return logger;
-						}
-
-						@Override
-						public void modifiedService(
-								ServiceReference<Logger> reference,
-								Logger service) {
-							if (getLoggerService().equals(service)) {
-								addingService(reference);
-							}
-						}
-
-						@Override
-						public void removedService(
-								ServiceReference<Logger> reference,
-								Logger service) {
-							unbindLoggerService(service);
-						}
-					});
-			loggerServiceTracker.open();
-		}
-		return true;
-	}
-
-	/**
-	 * 
-	 * @return
-	 * @throws Exception
-	 * @nooverride
-	 */
-	protected boolean openTrackerForPreferenceService()
-			throws ExceptionComponentLifecycle {
-		if (preferenceServiceTracker == null) {
-			Filter filter;
-			try {
-				filter = FrameworkUtil
-						.createFilter("(objectclass=org.osgi.service.prefs.PreferencesService)");
-			} catch (InvalidSyntaxException e) {
-				throw new ExceptionComponentLifecycle(e);
-			}
-			preferenceServiceTracker = new ServiceTracker<>(
-					getBundleContext(),
-					filter,
-					new ServiceTrackerCustomizer<PreferencesService, PreferencesService>() {
-						@Override
-						public PreferencesService addingService(
-								ServiceReference<PreferencesService> reference) {
-							PreferencesService preferencesService = getBundleContext()
-									.getService(reference);
-							bindPreferencesService(preferencesService);
-							return preferencesService;
-						}
-
-						@Override
-						public void modifiedService(
-								ServiceReference<PreferencesService> reference,
-								PreferencesService service) {
-							if (getPreferencesService().equals(service)) {
-								addingService(reference);
-							}
-						}
-
-						@Override
-						public void removedService(
-								ServiceReference<PreferencesService> reference,
-								PreferencesService service) {
-							unbindPreferencesService(service);
-						}
-					});
-			preferenceServiceTracker.open();
-		}
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.osgi.service.event.EventAdmin#postEvent()
-	 */
-	protected final void postEvent(String eventTopic) {
-		Map<String, Object> properties = new HashMap<String, Object>();
-		postEvent(eventTopic, properties);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.osgi.service.event.EventAdmin#postEvent()
-	 */
-	protected final void postEvent(String eventTopic, Map<String, ?> properties) {
-		Event event = new Event(eventTopic, properties);
-		getEventAdminService().postEvent(event);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.osgi.service.event.EventAdmin#postEvent()
-	 */
-	protected final void postEvent(String eventTopic, String context) {
-		Map<String, Object> properties = new HashMap<String, Object>();
-		// properties.put(LUNIFERA_RUNTIME_EVENT_PROPERTY_CONTEXT, context);
-		postEvent(eventTopic, properties);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.osgi.service.event.EventAdmin#sendEvent()
-	 */
-	protected final void sendEvent(String eventTopic) {
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		sendEvent(eventTopic, properties);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.osgi.service.event.EventAdmin#sendEvent()
-	 */
-	protected final void sendEvent(String eventTopic,
-			Dictionary<String, ?> properties) {
-		Event event = new Event(eventTopic, properties);
-		getEventAdminService().sendEvent(event);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.osgi.service.event.EventAdmin#sendEvent()
-	 */
-	protected final void sendEvent(String eventTopic, String context) {
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		// properties.put(LUNIFERA_RUNTIME_EVENT_PROPERTY_CONTEXT, context);
-		sendEvent(eventTopic, properties);
-
-	}
-
-	protected final void trace(String msg) {
-		getLoggerService().trace(msg);
-	}
-
-	protected final void trace(String format, Object... arguments) {
-		getLoggerService().trace(format, arguments);
-	}
-
-	/**
-	 * Method called by the DS or other to unbind an instance of
-	 * {@link EventAdmin} service.
-	 * 
-	 * @param eventAdmin
-	 */
-	protected final void unbindEventAdmin(EventAdmin eventAdmin) {
-		trace("({}) - Unbound EventAdmin for component '{}'.", getId(), this
-				.getClass().getName());
-		eventAdminServiceRef.compareAndSet(eventAdmin, null);
-	}
-
-	/**
-	 * Method called by the DS or other to unbind an instance of {@link Logger}
-	 * service.
-	 * 
-	 * @param logger
-	 */
-	protected final void unbindLoggerService(Logger logger) {
-		trace("({}) - Unbound Logger for component '{}'.", getId(), this
-				.getClass().getName());
-		loggerServiceRef.compareAndSet(logger, null);
-	}
-
-	/**
-	 * Method called by the DS or other to unbind an instance of
-	 * {@link PreferencesService} service.
-	 * 
-	 * @param preferencesService
-	 */
-	protected final void unbindPreferencesService(
-			PreferencesService preferencesService) {
-		trace("({}) - Unbound PreferencesService for component '{}'.", getId(),
-				this.getClass().getName());
-		preferencesServiceRef.compareAndSet(preferencesService, null);
-	}
-
-	protected void warn(String msg) {
-		getLoggerService().warn(msg);
-	}
-
-	protected void warn(String format, Object... arguments) {
-		getLoggerService().warn(format, arguments);
-	}
+    protected final void warn(String format, Object... arguments) {
+        getLoggerService().warn(format, arguments);
+    }
 }

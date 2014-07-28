@@ -13,25 +13,21 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.lunifera.runtime</groupId>
-		<artifactId>org.lunifera.runtime.utils.pom.mbp</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../org.lunifera.runtime.utils.pom.mbp/pom.xml</relativePath>
+		<artifactId>lunifera-runtime-utils</artifactId>
+		<version>0.5.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>org.lunifera.runtime.utils.osgi.io</artifactId>
-	<name>Lunifera Subsystems - Runtime Utilities for OSGi</name>
-	<description>A bundle component that provides some general utilities classes for OSGi.</description>
+	<artifactId>org.lunifera.runtime.utils.osgi</artifactId>
+	<name>Lunifera - Runtime Utilities for OSGi</name>
+	<description>A bundle that provides some general utilities classes to be extended or reused inside an OSGi environment.</description>
 	<packaging>bundle</packaging>
 
-	<url>${distribution.site.url}</url>
-	<distributionManagement>
-		<site>
-			<id>gh-pages</id>
-			<name>Lunifera GitHub Pages</name>
-			<url>${distribution.site.url}</url>
-		</site>
-	</distributionManagement>
-
+	<scm>
+		<connection>${lunifera.scm.connection}</connection>
+		<developerConnection>${lunifera.scm.connection.dev}</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -51,9 +47,9 @@
 				<artifactId>maven-bundle-plugin</artifactId>
 				<configuration>
 					<instructions>
-						<Import-Package>org.osgi.framework;version="[1.7,2)"</Import-Package>
+						<Import-Package>org.osgi.framework;version="[1.7,2)", *</Import-Package>
 						<Export-Package>
-							org.lunifera.runtime.utils.osgi.io.*
+							org.lunifera.runtime.utils.osgi.*
 						</Export-Package>
 						<Eclipse-ExtensibleAPI>true</Eclipse-ExtensibleAPI>
 					</instructions>

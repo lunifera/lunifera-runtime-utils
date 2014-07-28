@@ -1,4 +1,4 @@
-package org.lunifera.runtime.utils.osgi.component.extender;
+package org.lunifera.runtime.utils.osgi.component.whiteboard;
 
 /*
  * #%L
@@ -14,23 +14,15 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * #L%
  */
 
-/**
- * This interface are public methods of a DS extender component.
- * 
- * @author Cristiano Gavião
- * @since 0.0.1
- */
-public interface ComponentExtenderService {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    /**
-     * The manifest header used to track for contributions.
-     * 
-     * @return the header name.
-     */
-    String getExtenderContributorManifestHeader();
-
-    /**
-    * Defines which bundle states should tracked.
-    */
-    int getStateMask();
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+public @interface ComponentWhiteboardSetup {
+    ServiceTracker[] value();
 }

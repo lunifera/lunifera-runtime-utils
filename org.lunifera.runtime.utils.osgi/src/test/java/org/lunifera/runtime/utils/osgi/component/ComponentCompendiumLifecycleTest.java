@@ -15,47 +15,52 @@ package org.lunifera.runtime.utils.osgi.component;
  */
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
+import static org.hamcrest.Matchers.typeCompatibleWith;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lunifera.runtime.utils.osgi.component.AbstractComponentBasic;
-import org.lunifera.runtime.utils.osgi.component.AbstractComponentWithCompendium;
-import org.mockito.InOrder;
+import org.lunifera.runtime.utils.osgi.services.PluggableEventTracker;
+import org.lunifera.runtime.utils.osgi.services.PluggableServiceTracker;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.coordinator.Coordinator;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.prefs.PreferencesService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ComponentCompendiumLifecycleTest {
 
     static class AnComponent extends AbstractComponentWithCompendium {
 
-        public AnComponent(ComponentContext componentContext) {
-            super(componentContext);
+        @SuppressWarnings("rawtypes")
+        public AnComponent(BundleContext bundleContext,
+                ComponentContext componentContext,
+                Map<Class<?>, PluggableServiceTracker> serviceTrackers,
+                Set<PluggableEventTracker> eventTrackers) {
+            super(bundleContext, componentContext, serviceTrackers,
+                    eventTrackers);
         }
 
     }
-
-    static Logger logger = LoggerFactory
-            .getLogger(ComponentCompendiumLifecycleTest.class);
 
     @Mock
     ComponentContext componentContext;
@@ -63,108 +68,163 @@ public class ComponentCompendiumLifecycleTest {
     AbstractComponentWithCompendium concreteComponent;
 
     @Mock
-    ConfigurationAdmin configurationAdmin;
+    BundleContext bundleContext;
 
-    @Mock
-    EventAdmin eventAdmin;
+    @SuppressWarnings("rawtypes")
+    Map<Class<?>, PluggableServiceTracker> serviceTrackers = new HashMap<>();
 
-    Logger loggerService;
+    Set<PluggableEventTracker> eventTrackers = new HashSet<>();
 
-    @Mock
-    PreferencesService preferencesService;
+    @SuppressWarnings("unchecked")
+    @Before
+    public void before() {
+        serviceTrackers.clear();
 
-    @Test
-    public void ensureCompendiumTrackersAreBeingUsedWhenThereIsNoDsInjectingThingsBeforeActivate()
-            throws Exception {
-
-        assertThat(componentContext, notNullValue());
+        eventTrackers.clear();
 
         when(componentContext.getProperties()).thenReturn(getMockProperties());
 
-        concreteComponent = spy(new AnComponent(componentContext));
-        doReturn(true).when(concreteComponent).openTrackerForLoggingService();
-        doReturn(true).when(concreteComponent)
-                .openTrackerForEventAdminService();
-        doReturn(true).when(concreteComponent)
-                .openTrackerForPreferenceService();
+        when(componentContext.getBundleContext()).thenReturn(bundleContext);
 
-        assertThat(concreteComponent, notNullValue());
-
-        concreteComponent.bindEventAdmin(eventAdmin);
-        concreteComponent.bindLoggerService(logger);
-        concreteComponent.bindPreferencesService(preferencesService);
-
-        concreteComponent.activate(componentContext);
-
-        InOrder inOrder = Mockito.inOrder(concreteComponent);
-
-        inOrder.verify(concreteComponent).bindEventAdmin(any(EventAdmin.class));
-        inOrder.verify(concreteComponent).bindLoggerService(any(Logger.class));
-        inOrder.verify(concreteComponent).bindPreferencesService(
-                any(PreferencesService.class));
-        inOrder.verify(concreteComponent).activate(componentContext);
-
-        assertThat(concreteComponent.getEventAdminService(), notNullValue());
-        assertThat(concreteComponent.getPreferencesService(), notNullValue());
-        assertThat(concreteComponent.getLoggerService(), notNullValue());
+        serviceTrackers
+                .put(Coordinator.class,
+                        (PluggableServiceTracker<Coordinator>) mock(PluggableServiceTracker.class));
+        serviceTrackers
+                .put(Logger.class,
+                        (PluggableServiceTracker<Logger>) mock(PluggableServiceTracker.class));
+        serviceTrackers
+                .put(PreferencesService.class,
+                        (PluggableServiceTracker<PreferencesService>) mock(PluggableServiceTracker.class));
+        serviceTrackers
+                .put(EventAdmin.class,
+                        (PluggableServiceTracker<EventAdmin>) mock(PluggableServiceTracker.class));
     }
 
     @Test
-    public void ensureCompendiumTrackersAreNotUsedWhenDsBindsBefore()
-            throws Exception {
-
+    public void ensureCustomEventTrackersAreBeingSet() throws Exception {
         assertThat(componentContext, notNullValue());
-
         when(componentContext.getProperties()).thenReturn(getMockProperties());
+        when(componentContext.getBundleContext()).thenReturn(bundleContext);
+        final PluggableEventTracker pl = mock(PluggableEventTracker.class);
 
-        concreteComponent = spy(new AnComponent(componentContext));
+        concreteComponent = new AnComponent(bundleContext, componentContext,
+                serviceTrackers, eventTrackers) {
+            @Override
+            protected void defineEventsToBeTracked() {
+                trackEvent(pl);
+            }
+
+            @Override
+            protected void defineInnerServicesToBeTracked() {
+            }
+        };
         assertThat(concreteComponent, notNullValue());
-
-        concreteComponent.bindEventAdmin(eventAdmin);
-        concreteComponent.bindLoggerService(logger);
-        concreteComponent.bindPreferencesService(preferencesService);
-
-        assertThat(concreteComponent.getEventAdminService(), notNullValue());
-        assertThat(concreteComponent.getPreferencesService(), notNullValue());
-        assertThat(concreteComponent.getLoggerService(), notNullValue());
+        assertThat(concreteComponent.getEventTrackers().isEmpty(), is(true));
 
         concreteComponent.activate(componentContext);
+        assertThat(concreteComponent.getEventTrackers().size(), is(1));
+        verify(pl).registerEventHandler();
 
-        verify(concreteComponent).activate(componentContext);
-        verify(concreteComponent).bindEventAdmin(eventAdmin);
-        verify(concreteComponent).bindLoggerService(logger);
-        verify(concreteComponent).bindPreferencesService(preferencesService);
-
-    }
-
-    public void ensureComponentWasActivatedProperly() throws Exception {
-        assertThat(concreteComponent.getEventAdminService(), notNullValue());
-        assertThat(concreteComponent.getLoggerService(), notNullValue());
-        assertThat(concreteComponent.getPreferencesService(), notNullValue());
-        concreteComponent.activate(componentContext);
-
-        assertThat(concreteComponent.getId(), equalTo(121212l));
-        assertThat(concreteComponent.getName(), equalTo("Mocked Component"));
-        assertThat(concreteComponent.getDescription(),
-                equalTo("Mocked Component Description"));
-
-    }
-
-    public void ensureComponentWasDeactivateProperly() throws Exception {
         concreteComponent.deactivate(componentContext);
-        assertThat(concreteComponent.getComponentContext(), nullValue());
-        concreteComponent.unbindEventAdmin(eventAdmin);
+        verify(pl).unregisterEventHandler();
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers().size(),
+                is(0));
+    }
+
+    @Test
+    public void ensureDefaultServiceTrackersAreBeingSet() throws Exception {
+        assertThat(componentContext, notNullValue());
+        when(componentContext.getProperties()).thenReturn(getMockProperties());
+        when(componentContext.getBundleContext()).thenReturn(bundleContext);
+
+        concreteComponent = new AnComponent(bundleContext, componentContext,
+                null, null) {
+        };
+        assertThat(concreteComponent, notNullValue());
+        concreteComponent.defineInnerServicesToBeTracked();
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers().values(),
+                is(empty()));
+        assertThat(concreteComponent.getEventTrackers(), is(empty()));
+
+        concreteComponent = new AnComponent(bundleContext, componentContext,
+                serviceTrackers, eventTrackers) {
+        };
+        assertThat(concreteComponent, notNullValue());
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers().size(),
+                is(4));
+        assertThat(concreteComponent.getEventTrackers(), is(empty()));
+
+        concreteComponent.activate(componentContext);
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers().size(),
+                is(4));
+
+        PluggableServiceTracker<Logger> stl = new PluggableServiceTracker<Logger>(
+                Logger.class, bundleContext) {
+        };
+
+        PluggableServiceTracker<Logger> stl2 = concreteComponent
+                .getInnerPluggableServiceTracker(Logger.class);
+        assertThat(stl.getServiceType(), typeCompatibleWith(Logger.class));
+        assertThat(concreteComponent.getPreferencesService(), nullValue());
         assertThat(concreteComponent.getEventAdminService(), nullValue());
+        assertThat(concreteComponent.getLoggerService(), notNullValue());
+
+        verify(stl2).open();
+
+        concreteComponent.deactivate(componentContext);
+        verify(stl2).close();
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers().size(),
+                is(0));
+
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void ensureCustomServiceTrackersAreBeingSet() throws Exception {
+        assertThat(componentContext, notNullValue());
+        when(componentContext.getProperties()).thenReturn(getMockProperties());
+        when(componentContext.getBundleContext()).thenReturn(bundleContext);
+
+        final PluggableServiceTracker<Logger> pl = (PluggableServiceTracker<Logger>) mock(PluggableServiceTracker.class);
+        when(pl.getServiceType()).thenReturn(Logger.class);
+
+        concreteComponent = new AnComponent(bundleContext, componentContext,
+                null, eventTrackers) {
+            @Override
+            protected void defineInnerServicesToBeTracked()
+                    throws ExceptionComponentLifecycle {
+                trackServicesWith(pl);
+            }
+        };
+        assertThat(concreteComponent, notNullValue());
+        assertThat(concreteComponent.getEventTrackers(), is(empty()));
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers()
+                .values(), is(empty()));
+
+        concreteComponent.activate(componentContext);
+
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers().size(),
+                is(1));
+        assertThat(pl.getServiceType(), typeCompatibleWith(Logger.class));
+
+        verify(pl).open();
+
+        concreteComponent.deactivate(componentContext);
+        verify(pl).close();
+        assertThat(concreteComponent.getInnerPluggableServiceTrackers().size(),
+                is(0));
+
     }
 
     private Dictionary<String, Object> getMockProperties() {
         Dictionary<String, Object> dict = new Hashtable<>();
         dict.put(ComponentConstants.COMPONENT_ID, 121212l);
+        dict.put(
+                AbstractComponentWithCompendium.PROPERTY_ENABLE_INNER_SERVICE_TRACKERS,
+                true);
         dict.put(ComponentConstants.COMPONENT_NAME, "Mocked Component");
         dict.put(AbstractComponentBasic.COMPONENT_DESCRIPTION,
                 "Mocked Component Description");
-
         return dict;
     }
-
 }

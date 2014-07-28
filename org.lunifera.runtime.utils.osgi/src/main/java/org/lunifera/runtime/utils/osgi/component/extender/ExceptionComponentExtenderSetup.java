@@ -14,14 +14,15 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * #L%
  */
 
-import org.lunifera.runtime.utils.osgi.component.ExceptionComponentLifecycle;
+import org.lunifera.runtime.utils.osgi.component.ExceptionComponentUnrecoveredActivationError;
 
 /**
  * 
  * @author cvgaviao
  * @since 0.0.1
  */
-public class ExceptionComponentExtenderSetup extends ExceptionComponentLifecycle {
+public class ExceptionComponentExtenderSetup extends
+        ExceptionComponentUnrecoveredActivationError {
 
     private static final long serialVersionUID = 4800465886577999271L;
 

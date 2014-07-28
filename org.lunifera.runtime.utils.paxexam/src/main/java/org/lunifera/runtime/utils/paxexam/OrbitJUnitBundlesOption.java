@@ -32,44 +32,44 @@ import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
  * @since 0.0.1
  */
 public class OrbitJUnitBundlesOption extends
-		AbstractDelegateProvisionOption<OrbitJUnitBundlesOption> {
+        AbstractDelegateProvisionOption<OrbitJUnitBundlesOption> {
 
-	/**
-	 * Constructor.
-	 */
-	public OrbitJUnitBundlesOption() {
-		super(mavenBundle("org.lunifera.osgi", "org.junit")
-				.versionAsInProject());
-		noUpdate();
-		startLevel(START_LEVEL_SYSTEM_BUNDLES);
-	}
+    /**
+     * Constructor.
+     */
+    public OrbitJUnitBundlesOption() {
+        super(mavenBundle("org.lunifera.osgi", "org.junit")
+                .versionAsInProject());
+        noUpdate();
+        startLevel(START_LEVEL_SYSTEM_BUNDLES);
+    }
 
-	/**
-	 * Sets the junit version.
-	 * 
-	 * @param version
-	 *            junit version.
-	 * 
-	 * @return itself, for fluent api usage
-	 */
-	public OrbitJUnitBundlesOption version(final String version) {
-		((MavenArtifactProvisionOption) getDelegate()).version(version);
-		return this;
-	}
+    /**
+     * Sets the junit version.
+     * 
+     * @param version
+     *            junit version.
+     * 
+     * @return itself, for fluent api usage
+     */
+    public OrbitJUnitBundlesOption version(final String version) {
+        ((MavenArtifactProvisionOption) getDelegate()).version(version);
+        return this;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder();
-		sb.append("OrbitJUnitBundlesOption");
-		sb.append("{url=").append(getURL());
-		sb.append('}');
-		return sb.toString();
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("OrbitJUnitBundlesOption");
+        sb.append("{url=").append(getURL());
+        sb.append('}');
+        return sb.toString();
+    }
 
-	protected OrbitJUnitBundlesOption itself() {
-		return this;
-	}
+    protected OrbitJUnitBundlesOption itself() {
+        return this;
+    }
 }
