@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>org.lunifera.runtime</groupId>
 		<artifactId>lunifera-runtime-utils</artifactId>
-		<version>0.6.0</version>
+		<version>0.6.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>org.lunifera.runtime.utils.osgi</artifactId>
@@ -24,7 +24,7 @@
 	<scm>
 		<connection>${lunifera.scm.connection}</connection>
 		<developerConnection>${lunifera.scm.connection.dev}</developerConnection>
-		<tag>v0.6.0</tag>
+		<tag>HEAD</tag>
 	</scm>
 	
 	<dependencies>
