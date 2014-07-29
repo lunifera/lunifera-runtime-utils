@@ -1,0 +1,8 @@
+org.lunifera.runtime.utils.osgi.component
+org.lunifera.runtime.utils.osgi.component.extender
+org.lunifera.runtime.utils.osgi.component.extender.handlers
+org.lunifera.runtime.utils.osgi.component.whiteboard
+org.lunifera.runtime.utils.osgi.io
+org.lunifera.runtime.utils.osgi.services
+org.lunifera.runtime.utils.paxexam
+org.lunifera.runtime.utils.paxexam.junit
