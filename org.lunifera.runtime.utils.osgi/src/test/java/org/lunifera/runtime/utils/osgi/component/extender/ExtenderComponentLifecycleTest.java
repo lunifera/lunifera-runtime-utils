@@ -16,14 +16,16 @@ package org.lunifera.runtime.utils.osgi.component.extender;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Matchers.any;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +37,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lunifera.runtime.utils.osgi.component.AbstractComponentBasic;
-import org.lunifera.runtime.utils.osgi.component.extender.AbstractComponentExtender.ContributorBundleTracker;
 import org.lunifera.runtime.utils.osgi.services.PluggableEventTracker;
 import org.lunifera.runtime.utils.osgi.services.PluggableServiceTracker;
 import org.mockito.Mock;
@@ -44,6 +45,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.Filter;
+import org.osgi.framework.Version;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
@@ -67,11 +69,12 @@ public class ExtenderComponentLifecycleTest {
         @SuppressWarnings("rawtypes")
         public ConcreteExtenderComponent(BundleContext bundleContext,
                 ComponentContext componentContext,
+                ContributionHandlerService contributionHandlerService,
                 Map<Class<?>, PluggableServiceTracker> serviceTrackers,
                 Set<PluggableEventTracker> eventTrackers,
                 Filter contributionHandlerServiceFilter) {
-            super(bundleContext, componentContext, serviceTrackers,
-                    eventTrackers);
+            super(bundleContext, componentContext, contributionHandlerService,
+                    serviceTrackers, eventTrackers);
         }
 
         protected void myInternalActivate() throws Exception {
@@ -93,12 +96,13 @@ public class ExtenderComponentLifecycleTest {
         @SuppressWarnings("rawtypes")
         public ConcreteExtenderComponentWithoutAnnotation(
                 BundleContext bundleContext, ComponentContext componentContext,
+                ContributionHandlerService contributionHandlerService,
                 Map<Class<?>, PluggableServiceTracker> serviceTrackers,
                 Set<PluggableEventTracker> eventTrackers,
                 Filter contributionHandlerServiceFilter,
                 ContributorBundleTracker bundleTracker) {
-            super(bundleContext, componentContext, serviceTrackers,
-                    eventTrackers);
+            super(bundleContext, componentContext, contributionHandlerService,
+                    serviceTrackers, eventTrackers);
         }
 
         protected void myInternalActivate() throws Exception {
@@ -113,11 +117,12 @@ public class ExtenderComponentLifecycleTest {
         public ConcreteExtenderComponentWithoutHeader(
                 BundleContext bundleContext,
                 ComponentContext componentContext,
+                ContributionHandlerService contributionHandlerService,
                 @SuppressWarnings("rawtypes") Map<Class<?>, PluggableServiceTracker> serviceTrackers,
                 Set<PluggableEventTracker> eventTrackers,
                 Filter contributionHandlerServiceFilter) {
-            super(bundleContext, componentContext, serviceTrackers,
-                    eventTrackers);
+            super(bundleContext, componentContext, contributionHandlerService,
+                    serviceTrackers, eventTrackers);
         }
 
         protected void myInternalActivate() throws Exception {
@@ -146,16 +151,34 @@ public class ExtenderComponentLifecycleTest {
     ServiceTracker<ContributionHandlerService, ContributionHandlerService> contributionHandlerServiceTracker;
 
     @Mock
-    BundleContext bundleContext;
+    Bundle bundleExtender;
+
+    @Mock
+    Bundle bundleExtendee;
+
+    @Mock
+    BundleContext bundleContextExtender;
+
+    @Mock
+    BundleContext bundleContextExtendee;
+
+    @Mock
+    ComponentContext componentContextExtender;
+
+    @Mock
+    ComponentContext componentContextExtendee;
 
     @Mock
     ContributionHandlerService contributionHandlerService;
 
     @Mock
-    ContributorBundleTrackerObject contributorBundleTrackerObject;
+    ContributorBundle contributorBundleInstance;
 
     @Mock
     Filter contributionHandlerServiceFilter;
+
+    @Mock
+    ContributionItem contributionItem1;
 
     @Mock
     PluggableServiceTracker<ContributionHandlerService> serviceTrackerContributionHandlerService;
@@ -185,11 +208,38 @@ public class ExtenderComponentLifecycleTest {
                 .put(EventAdmin.class,
                         (PluggableServiceTracker<EventAdmin>) mock(PluggableServiceTracker.class));
 
+        when(contributorBundleInstance.bundleWrapped()).thenReturn(
+                bundleExtendee);
         when(
-                contributionHandlerService.whenContributorBundleActivated(
-                        any(Bundle.class), eq("MyHeader"),
-                        eq("resource1,resource2"))).thenReturn(
-                contributorBundleTrackerObject);
+                contributionHandlerService
+                        .createContributionItemFromResourceFile(
+                                any(ContributorBundle.class), any(URL.class)))
+                .thenReturn(contributionItem1);
+        when(
+                contributionHandlerService
+                        .createContributorBundleInstance(bundleExtendee))
+                .thenReturn(contributorBundleInstance);
+        when(componentContextExtender.getBundleContext()).thenReturn(
+                bundleContextExtender);
+        when(componentContextExtender.getProperties()).thenReturn(
+                getMockedPropertiesForExtender());
+        when(bundleContextExtender.getBundle()).thenReturn(bundleExtender);
+        when(bundleExtender.getBundleContext()).thenReturn(
+                bundleContextExtender);
+        when(bundleExtender.getSymbolicName()).thenReturn(
+                "bundle.test.extender");
+        when(bundleExtender.getVersion()).thenReturn(new Version("1.0.0"));
+
+        when(componentContextExtendee.getBundleContext()).thenReturn(
+                bundleContextExtendee);
+        when(componentContextExtendee.getProperties()).thenReturn(
+                getMockedPropertiesForExtendee());
+        when(bundleContextExtendee.getBundle()).thenReturn(bundleExtendee);
+        when(bundleExtendee.getBundleContext()).thenReturn(
+                bundleContextExtendee);
+        when(bundleExtendee.getSymbolicName()).thenReturn(
+                "bundle.test.extendee");
+        when(bundleExtendee.getVersion()).thenReturn(new Version("1.0.0"));
     }
 
     /**
@@ -199,43 +249,52 @@ public class ExtenderComponentLifecycleTest {
     @Test
     public void ensureContributorTrackerIsAddingContributorBundle()
             throws Exception {
-        ComponentContext componentContext = mock(ComponentContext.class);
-        when(componentContext.getProperties()).thenReturn(getMockProperties());
-        Bundle contributorBundle = mock(Bundle.class);
         BundleEvent event = mock(BundleEvent.class);
-        when(contributorBundle.getHeaders()).thenReturn(getEmptyMockHeader());
-
-        ContributorBundleTrackerObject contributorBundleTrackerObject = mock(ContributorBundleTrackerObject.class);
-
         ContributionHandlerService contributionHandlerService = mock(ContributionHandlerService.class);
-        when(event.getBundle()).thenReturn(contributorBundle);
-        when(contributorBundle.getBundleContext()).thenReturn(bundleContext);
-        when(contributorBundle.getHeaders()).thenReturn(getMockHeader());
-        when(contributorBundle.getSymbolicName()).thenReturn("bundle.test");
+        ContributionItem contributionItemResource1 = mock(ContributionItem.class);
+        ContributionItem contributionItemResource2 = mock(ContributionItem.class);
+
+        when(contributionHandlerService.getHandlerName()).thenReturn(
+                "ContribuitionHandler");
+        when(contributionHandlerService.isResourceUrlValid("resource1"))
+                .thenReturn(false);
+        when(contributionHandlerService.isResourceUrlValid("resource2"))
+                .thenReturn(false);
+        when(event.getBundle()).thenReturn(bundleExtendee);
+        when(bundleExtendee.getHeaders()).thenReturn(getMockHeader());
         when(contributionHandlerService.getContributionHandlingStrategy())
                 .thenReturn(ContributionHandlingStrategy.PER_ITEM);
         when(
                 contributionHandlerService
-                        .whenContributorBundleActivated(any(Bundle.class),
-                                any(String.class), any(String.class)))
-                .thenReturn(contributorBundleTrackerObject);
+                        .createContributorBundleInstance(bundleExtendee))
+                .thenReturn(contributorBundleInstance);
+        when(
+                contributionHandlerService
+                        .createContributionItemsForDiscoveredResources(
+                                contributorBundleInstance, "resource1"))
+                .thenReturn(Arrays.asList(contributionItemResource1));
+        when(
+                contributionHandlerService
+                        .createContributionItemsForDiscoveredResources(
+                                contributorBundleInstance, "resource2"))
+                .thenReturn(Arrays.asList(contributionItemResource2));
         when(contributionHandlerService.getContributionItemResourceType())
                 .thenReturn(
                         ContributionItemResourceType.PROPERTIES_FILE_RESOURCE);
         ConcreteExtenderComponent concreteExtenderComponent = new ConcreteExtenderComponent(
-                bundleContext, componentContext, serviceTrackers,
-                eventTrackers, contributionHandlerServiceFilter);
-        concreteExtenderComponent
-                .bindContributionHandlerService(contributionHandlerService);
+                bundleContextExtender, componentContextExtender,
+                contributionHandlerService, serviceTrackers, eventTrackers,
+                contributionHandlerServiceFilter);
 
         assertThat(concreteExtenderComponent.getContributorBundleTracker(),
                 notNullValue());
 
-        // simulating a container activating the extender bundle
+        // simulating DS activating the extender bundle
         concreteExtenderComponent.myInternalActivate();
 
-        assertThat(concreteExtenderComponent.getContributorBundleTracker(),
-                notNullValue());
+        assertThat(bundleExtendee.getSymbolicName(), is("bundle.test.extendee"));
+        assertThat(bundleExtendee.getVersion().toString(), is("1.0.0"));
+
         assertThat(concreteExtenderComponent.getContributionHandlerService(),
                 notNullValue());
         assertThat(concreteExtenderComponent.getContributionHandlerService()
@@ -244,32 +303,33 @@ public class ExtenderComponentLifecycleTest {
         assertThat(concreteExtenderComponent.getContributionHandlerService()
                 .getContributionItemResourceType(),
                 equalTo(ContributionItemResourceType.PROPERTIES_FILE_RESOURCE));
+
         // simulating a container identifying a bundle being added
-        ContributorBundleTrackerObject contributorBundleTrackerObjectR = concreteExtenderComponent
-                .getContributorBundleTracker().addingBundle(contributorBundle,
+        ContributorBundle contributorBundle = concreteExtenderComponent
+                .getContributorBundleTracker().addingBundle(bundleExtendee,
                         event);
+        assertThat(contributorBundle, notNullValue());
 
-        verify(contributionHandlerService).whenContributorBundleActivated(
-                any(Bundle.class), any(String.class), any(String.class));
-
-        assertThat(contributorBundleTrackerObjectR, notNullValue());
+        verify(contributionHandlerService).createContributorBundleInstance(
+                any(Bundle.class));
+        verify(contributionHandlerService, times(2)).isResourceUrlValid(
+                any(String.class));
+        verify(contributionHandlerService, times(2))
+                .createContributionItemsForDiscoveredResources(
+                        any(ContributorBundle.class), any(String.class));
     }
 
     @Test
     public void ensureContributorTrackerIsRefusingContributorBundleWithoutHeaderItems()
             throws Exception {
-        ComponentContext componentContext = mock(ComponentContext.class);
-        when(componentContext.getProperties()).thenReturn(getMockProperties());
-        Bundle contributorBundle = mock(Bundle.class);
         BundleEvent event = mock(BundleEvent.class);
-        when(event.getBundle()).thenReturn(contributorBundle);
-        when(contributorBundle.getBundleContext()).thenReturn(bundleContext);
-        when(contributorBundle.getHeaders()).thenReturn(getEmptyMockHeader());
-        when(contributorBundle.getSymbolicName()).thenReturn("bundle.test");
-
+        when(event.getBundle()).thenReturn(bundleExtendee);
+        when(bundleExtendee.getHeaders()).thenReturn(getEmptyMockHeader());
+        ContributionHandlerService contributionHandlerService = mock(ContributionHandlerService.class);
         ConcreteExtenderComponent concreteExtenderComponent = new ConcreteExtenderComponent(
-                bundleContext, componentContext, serviceTrackers,
-                eventTrackers, contributionHandlerServiceFilter);
+                bundleContextExtender, componentContextExtender,
+                contributionHandlerService, serviceTrackers, eventTrackers,
+                contributionHandlerServiceFilter);
 
         // simulating a container activating the extender bundle
         concreteExtenderComponent.myInternalActivate();
@@ -277,8 +337,8 @@ public class ExtenderComponentLifecycleTest {
         // simulating a container identifying a bundle being added
         ContributorBundleTracker bundleTracker = concreteExtenderComponent
                 .getContributorBundleTracker();
-        ContributorBundleTrackerObject contributorBundleTrackerObject = bundleTracker
-                .addingBundle(contributorBundle, event);
+        ContributorBundle contributorBundleTrackerObject = bundleTracker
+                .addingBundle(bundleExtendee, event);
 
         assertThat(contributorBundleTrackerObject, nullValue());
     }
@@ -286,19 +346,18 @@ public class ExtenderComponentLifecycleTest {
     @Test
     public void ensureFailureForContributorBundleWithoutManifestHeader()
             throws Exception {
-        ComponentContext componentContext = mock(ComponentContext.class);
-        when(componentContext.getProperties()).thenReturn(getMockProperties());
-        Bundle contributorBundle = mock(Bundle.class);
+        ContributionHandlerService contributionHandlerService = mock(ContributionHandlerService.class);
         BundleEvent event = mock(BundleEvent.class);
-        when(contributorBundle.getHeaders()).thenReturn(getEmptyMockHeader());
+        when(bundleExtendee.getHeaders()).thenReturn(getEmptyMockHeader());
         ConcreteExtenderComponentWithoutHeader concreteExtenderComponent = new ConcreteExtenderComponentWithoutHeader(
-                bundleContext, componentContext, serviceTrackers,
-                eventTrackers, contributionHandlerServiceFilter);
+                bundleContextExtender, componentContextExtender,
+                contributionHandlerService, serviceTrackers, eventTrackers,
+                contributionHandlerServiceFilter);
 
         concreteExtenderComponent.myInternalActivate();
 
-        ContributorBundleTrackerObject result = concreteExtenderComponent
-                .getContributorBundleTracker().addingBundle(contributorBundle,
+        ContributorBundle result = concreteExtenderComponent
+                .getContributorBundleTracker().addingBundle(bundleExtendee,
                         event);
         assertThat(result, nullValue());
     }
@@ -306,12 +365,13 @@ public class ExtenderComponentLifecycleTest {
     @Test(expected = ExceptionComponentExtenderSetup.class)
     public void ensureFailureForContributorWithoutServiceProperties()
             throws Exception {
-        ComponentContext componentContext = mock(ComponentContext.class);
-        when(componentContext.getProperties()).thenReturn(
+        ContributionHandlerService contributionHandlerService = mock(ContributionHandlerService.class);
+        when(componentContextExtender.getProperties()).thenReturn(
                 getMockFailProperties());
         ConcreteExtenderComponentWithoutAnnotation concreteExtenderComponent = new ConcreteExtenderComponentWithoutAnnotation(
-                bundleContext, componentContext, serviceTrackers,
-                eventTrackers, contributionHandlerServiceFilter, null);
+                bundleContextExtender, componentContextExtender,
+                contributionHandlerService, serviceTrackers, eventTrackers,
+                contributionHandlerServiceFilter, null);
 
         try {
             // call a method that wraps the internalActivate method.
@@ -336,10 +396,19 @@ public class ExtenderComponentLifecycleTest {
         return dict;
     }
 
-    private Dictionary<String, Object> getMockProperties() {
+    private Dictionary<String, Object> getMockedPropertiesForExtendee() {
+        Dictionary<String, Object> dict = new Hashtable<>();
+        dict.put(ComponentConstants.COMPONENT_ID, 333333l);
+        dict.put(ComponentConstants.COMPONENT_NAME, "Mocked Extendee Component");
+        dict.put(AbstractComponentBasic.COMPONENT_DESCRIPTION,
+                "Mocked Extendee Component Description");
+        return dict;
+    }
+
+    private Dictionary<String, Object> getMockedPropertiesForExtender() {
         Dictionary<String, Object> dict = new Hashtable<>();
         dict.put(ComponentConstants.COMPONENT_ID, 121212l);
-        dict.put(ComponentConstants.COMPONENT_NAME, "Mocked Component");
+        dict.put(ComponentConstants.COMPONENT_NAME, "Mocked Extender Component");
         dict.put(ConstantsExtender.EXTENDER_ATTR_MANIFEST_HEADER_NAME,
                 "MyHeader");
         dict.put(AbstractComponentBasic.COMPONENT_DESCRIPTION,

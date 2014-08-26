@@ -38,8 +38,8 @@ public enum ContributionHandlingStrategy {
     PER_BUNDLE(CONTRIBUTION_HANDLING_STRATEGY_PER_BUNDLE),
 
     /**
-     * Contribution will be categorized by a customized pattern. Each match of
-     * that pattern must generate one contribution object.
+     * Contribution will be categorized by a customized PATTERN_TARGET_PID. Each match of
+     * that PATTERN_TARGET_PID must generate one contribution object.
      */
     PER_CATEGORY(CONTRIBUTION_HANDLING_STRATEGY_PER_CATEGORY);
 

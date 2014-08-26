@@ -38,6 +38,8 @@ import com.google.common.base.Objects;
  */
 public abstract class AbstractComponentBasic {
 
+    public static String COMPONENT_ID = ComponentConstants.COMPONENT_ID;
+    public static String COMPONENT_NAME = ComponentConstants.COMPONENT_NAME;
     public static String COMPONENT_DESCRIPTION = "component.description";
 
     /**
@@ -98,7 +100,10 @@ public abstract class AbstractComponentBasic {
 
         // save bundleContext reference...
         this.componentContext = componentContext;
+        initialize();
+    }
 
+    private void initialize() {
         // set common component attributes
         componentId = (Long) componentContext.getProperties().get(
                 ComponentConstants.COMPONENT_ID);
@@ -131,8 +136,12 @@ public abstract class AbstractComponentBasic {
      */
     protected final BundleContext getBundleContext() {
         if (bundleContext == null) {
-            Bundle bundle = FrameworkUtil.getBundle(this.getClass());
-            bundleContext = bundle.getBundleContext();
+            if (componentContext != null) {
+                bundleContext = componentContext.getBundleContext();
+            } else {
+                Bundle bundle = FrameworkUtil.getBundle(this.getClass());
+                bundleContext = bundle.getBundleContext();
+            }
         }
         return bundleContext;
     }
@@ -156,7 +165,7 @@ public abstract class AbstractComponentBasic {
     }
 
     /**
-     * 
+     * The ID of the component instance.
      * 
      * @return
      */
@@ -165,7 +174,16 @@ public abstract class AbstractComponentBasic {
     }
 
     /**
-     * The name of the registered component.
+     * The location of the bundle that holds this component instance.
+     * 
+     * @return
+     */
+    protected final String getLocation() {
+        return getBundleContext().getBundle().getLocation();
+    }
+
+    /**
+     * The name of the this component instance.
      * <p>
      * This value is set after the component be activated by DS.
      * 
@@ -173,6 +191,10 @@ public abstract class AbstractComponentBasic {
      */
     protected final String getName() {
         return (componentName != null ? componentName : "");
+    }
+
+    protected final String getVersion() {
+        return getBundleContext().getBundle().getVersion().toString();
     }
 
     /**
@@ -192,8 +214,7 @@ public abstract class AbstractComponentBasic {
      */
     protected void modified(ComponentContext context)
             throws ExceptionComponentLifecycle {
-
-        activate(context);
+        initialize();
     }
 
     @Override

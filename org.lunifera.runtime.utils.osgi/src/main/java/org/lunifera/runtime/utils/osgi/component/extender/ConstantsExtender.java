@@ -1,10 +1,16 @@
 package org.lunifera.runtime.utils.osgi.component.extender;
 
+import static org.osgi.framework.Constants.SERVICE_PID;
+
 public interface ConstantsExtender {
+    
+    String EXTENDER_SERVICE_PID = SERVICE_PID;
 
     String EXTENDER_ATTR_CONTRIBUTION_HANDLER_ALIAS = "lunifera.extender.contribution.handler.alias";
     
     String EXTENDER_ATTR_CONTRIBUTION_ITEM_RESOURCE_TYPE = "lunifera.extender.contribution.item.resource.type";
+
+    String EXTENDER_ATTR_CONTRIBUTION_ITEM_RESOURCE_EXTENSIONS = "lunifera.extender.contribution.item.resource.extensions";
     
     String EXTENDER_ATTR_CONTRIBUTION_HANDLING_STRATEGY = "lunifera.extender.contribution.handling.strategy";
     
@@ -30,4 +36,10 @@ public interface ConstantsExtender {
     String RESOURCE_TYPE_PROPERTY_VALUE_PAIRS = "property_value_pairs";
     
     String RESOURCE_TYPE_SINGLE_CLASS_NAME = "single_class_name";
+
+    public static final String EXTENDER_CONTRIBUTOR_BUNDLE_NAME = "lunifera.extender.contributor.bundle";
+
+    public static final String EXTENDER_CONTRIBUTOR_BUNDLE_VERSION = "lunifera.extender.contributor.bundle.version";
+
+    public static final String EXTENDER_CONTRIBUTOR_ITEM = "lunifera.extender.contributor.item";
 }

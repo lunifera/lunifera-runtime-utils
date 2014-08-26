@@ -1,5 +1,11 @@
 package org.lunifera.runtime.utils.osgi.component.extender;
 
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
+
+import org.osgi.framework.Bundle;
+
 /*
  * #%L
  * Lunifera Subsystems - Runtime Utilities for OSGi
@@ -14,20 +20,18 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * #L%
  */
 
-import org.osgi.framework.Bundle;
-
 /**
- * A ContributionHandlerService is responsible to process the contribution
- * resources coming from ContributorBundle components.
+ * A ContributionHandlerService is responsible for processing the contribution
+ * resources coming from ContributorBundle instances.
  * <p>
- * The extender utility will bind to one registered ContributionHandlerService
+ * An extender component will bind to one registered ContributionHandlerService
  * instance and will delegate to it the resource processing job whenever some
  * bundle matching the extender manifest header is added, modified or removed
  * from the container.
  * <p>
- * A Contributor Bundle represents the <i>'extendee'</i> bundle that is
+ * A contributor bundle represents the <i>'extendee'</i> bundle that is
  * contributing something (using resource files) to other <i>'extendible'</i>
- * bundle through the <i>'extender'</i> bundle.
+ * bundle through the <i>'extender'</i> component.
  * 
  * @author Cristiano Gavião
  * @since 0.0.1
@@ -35,11 +39,91 @@ import org.osgi.framework.Bundle;
 public interface ContributionHandlerService {
 
     String EXTENSION_STRATEGY = "lunifera.extension.strategy";
+
     String MANIFEST_HEADER_ITEM_TYPE = "lunifera.extender.contribution.item.resource.type";
 
     /**
-     * An extender implementation can process its contributions using different
-     * paths. The most commons are specified in
+     * 
+     * @param contributorBundleInstance
+     * @param pid
+     * @param properties
+     * @return
+     */
+    ContributionItem createContributionItemFromHeaderProperties(
+            ContributorBundle contributorBundleInstance, String pid,
+            Map<String, Object> properties);
+
+    /**
+     * 
+     * @param contributorBundleInstance
+     * @param resourceFileURL
+     * @param properties
+     * @return
+     */
+    ContributionItem createContributionItemFromHeaderProperties(
+            ContributorBundle contributorBundleInstance, String pid,
+            String[] keyValuePairProperties);
+
+    /**
+     * The extender delegates to an implementation of
+     * {@link ContributionHandlerService} the task to create a
+     * {@link ContributionItem} in accordance with it own rules.
+     * 
+     * @param contributorBundleTrackerObject
+     * @param resourceFileURL
+     * @return
+     */
+    ContributionItem createContributionItemFromResourceFile(
+            ContributorBundle contributorBundleTrackerObject,
+            URL resourceFileURL);
+
+    /**
+     * The extender delegates to an implementation of
+     * {@link ContributionHandlerService} the task to create a
+     * {@link ContributionItem} from a resource file being contributed by a
+     * {@link ContributorBundle}.
+     * 
+     * @param contributorBundleTrackerObject
+     * @param resourceFileURL
+     * @param properties
+     * @return
+     */
+    ContributionItem createContributionItemFromResourceFile(
+            ContributorBundle contributorBundleTrackerObject,
+            URL resourceFileURL, Map<String, Object> properties);
+
+    /**
+     * 
+     * 
+     * @param contributorBundleInstance
+     * @param searchArgs
+     * @return
+     */
+    List<ContributionItem> createContributionItemsForDiscoveredResources(
+            ContributorBundle contributorBundleInstance, String searchArgs);
+
+    /**
+     * Creates a {@link ContributorBundle} instance. 
+     * 
+     * @param contributorBundle
+     * @return
+     */
+    ContributorBundle createContributorBundleInstance(Bundle contributorBundle);
+
+    /**
+     * 
+     * @param contributionItemURL
+     * @return
+     * @throws ExceptionComponentExtenderSetup
+     */
+    Map<String, String> extractPropertiesFromResourceFile(
+            URL contributionItemURL) throws ExceptionComponentExtenderSetup;
+
+    /**
+     * An extender implementation can process its contributions resources using
+     * different strategies.
+     * <p>
+     * The most common ways can be selected in
      * {@link ContributionHandlerService}.
      * 
      * @return The handling strategy provided by this contribution handler.
@@ -61,38 +145,19 @@ public interface ContributionHandlerService {
     String getHandlerName();
 
     /**
-     * This method is called by the BundleTracker when a specific filtered
-     * bundle is arrived.
      * 
-     * @param contributorBundle
-     * @param headerName
+     * @param contributionItemPath
      * @return
-     * @throws ExceptionComponentExtenderSetup
      */
-    ContributorBundleTrackerObject whenContributorBundleActivated(
-            Bundle contributorBundle, String headerName, String headerValue)
-            throws ExceptionComponentExtenderSetup;
+    boolean isResourceUrlValid(String contributionItemPath);
 
     /**
-     * This method is called by the BundleTracker when a specific filtered
-     * bundle is modified.
+     * Used to ensure that everything done when the {@link ContributionItem} was
+     * create are properly undone when its host contributor bundle is removed
+     * from the container.
      * 
      * @param contributorBundleTrackerObject
-     * @throws ExceptionComponentExtenderSetup
      */
-    void whenContributorBundleModified(
-            ContributorBundleTrackerObject contributorBundleTrackerObject)
-            throws ExceptionComponentExtenderSetup;
-
-    /**
-     * This method is called by the BundleTracker when a specific filtered
-     * bundle is removed from container.
-     * 
-     * @param contributorBundleTrackerObject
-     * @throws ExceptionComponentExtenderSetup
-     */
-    void whenContributorBundleRemoved(
-            ContributorBundleTrackerObject contributorBundleTrackerObject)
-            throws ExceptionComponentExtenderSetup;
-
+    void removeContributionItems(
+            ContributorBundle contributorBundleTrackerObject);
 }

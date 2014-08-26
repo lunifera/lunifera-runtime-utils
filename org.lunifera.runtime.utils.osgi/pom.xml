@@ -8,12 +8,13 @@
 <!--# Contributors: -->
 <!--# Cristiano Gavião (C4biz)- initial API and implementation -->
 <!--#======================================================================= -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.lunifera.runtime</groupId>
 		<artifactId>lunifera-runtime-utils</artifactId>
-		<version>0.6.1-SNAPSHOT</version>
+		<version>0.7.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>org.lunifera.runtime.utils.osgi</artifactId>
@@ -26,7 +27,7 @@
 		<developerConnection>${lunifera.scm.connection.dev}</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -37,6 +38,11 @@
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.annotation</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.gogo.runtime</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -46,7 +52,10 @@
 				<artifactId>maven-bundle-plugin</artifactId>
 				<configuration>
 					<instructions>
-						<Import-Package>org.osgi.framework;version="[1.7,2)", *</Import-Package>
+						<Import-Package>
+							org.osgi.framework;version="[1.7,2)",
+							org.osgi.framework.wiring;version="[1.1,2)",
+							*</Import-Package>
 						<Export-Package>
 							org.lunifera.runtime.utils.osgi.*
 						</Export-Package>

@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.lunifera.runtime</groupId>
+		<artifactId>lunifera-runtime-utils</artifactId>
+		<version>0.7.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>org.lunifera.runtime.utils.osgi.itests.samples.config</artifactId>
+	<packaging>bundle</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.lunifera.runtime</groupId>
+			<artifactId>org.lunifera.runtime.utils.osgi</artifactId>
+			<version>0.7.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<configuration>
+					<instructions>
+						<XFIRE>/OSGI-INF/config/*</XFIRE>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

@@ -38,7 +38,9 @@ import org.lunifera.runtime.utils.osgi.services.PluggableEventTracker;
 import org.lunifera.runtime.utils.osgi.services.PluggableServiceTracker;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Version;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.coordinator.Coordinator;
@@ -61,11 +63,13 @@ public class ComponentCompendiumLifecycleTest {
         }
 
     }
+    AbstractComponentWithCompendium concreteComponent;
 
     @Mock
     ComponentContext componentContext;
 
-    AbstractComponentWithCompendium concreteComponent;
+    @Mock
+    Bundle bundle;
 
     @Mock
     BundleContext bundleContext;
@@ -86,6 +90,10 @@ public class ComponentCompendiumLifecycleTest {
 
         when(componentContext.getBundleContext()).thenReturn(bundleContext);
 
+        when(bundleContext.getBundle()).thenReturn(bundle);
+        when(bundle.getSymbolicName()).thenReturn("bundle.test.component");
+        when(bundle.getVersion()).thenReturn(new Version("1.0.0"));
+
         serviceTrackers
                 .put(Coordinator.class,
                         (PluggableServiceTracker<Coordinator>) mock(PluggableServiceTracker.class));
@@ -104,7 +112,6 @@ public class ComponentCompendiumLifecycleTest {
     public void ensureCustomEventTrackersAreBeingSet() throws Exception {
         assertThat(componentContext, notNullValue());
         when(componentContext.getProperties()).thenReturn(getMockProperties());
-        when(componentContext.getBundleContext()).thenReturn(bundleContext);
         final PluggableEventTracker pl = mock(PluggableEventTracker.class);
 
         concreteComponent = new AnComponent(bundleContext, componentContext,
@@ -135,7 +142,6 @@ public class ComponentCompendiumLifecycleTest {
     public void ensureDefaultServiceTrackersAreBeingSet() throws Exception {
         assertThat(componentContext, notNullValue());
         when(componentContext.getProperties()).thenReturn(getMockProperties());
-        when(componentContext.getBundleContext()).thenReturn(bundleContext);
 
         concreteComponent = new AnComponent(bundleContext, componentContext,
                 null, null) {
@@ -183,7 +189,6 @@ public class ComponentCompendiumLifecycleTest {
     public void ensureCustomServiceTrackersAreBeingSet() throws Exception {
         assertThat(componentContext, notNullValue());
         when(componentContext.getProperties()).thenReturn(getMockProperties());
-        when(componentContext.getBundleContext()).thenReturn(bundleContext);
 
         final PluggableServiceTracker<Logger> pl = (PluggableServiceTracker<Logger>) mock(PluggableServiceTracker.class);
         when(pl.getServiceType()).thenReturn(Logger.class);

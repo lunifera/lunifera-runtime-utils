@@ -14,24 +14,24 @@ package org.lunifera.runtime.utils.osgi.component.extender;
  * #L%
  */
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Dictionary;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.lunifera.runtime.utils.osgi.component.AbstractComponentWithCompendium;
 import org.lunifera.runtime.utils.osgi.component.ExceptionComponentLifecycle;
-import org.lunifera.runtime.utils.osgi.component.ExceptionComponentUnrecoveredActivationError;
 import org.lunifera.runtime.utils.osgi.services.PluggableEventTracker;
 import org.lunifera.runtime.utils.osgi.services.PluggableServiceTracker;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.util.tracker.BundleTracker;
-import org.osgi.util.tracker.BundleTrackerCustomizer;
+
+import com.google.common.base.Splitter;
 
 /**
  * An abstract class for extender components.
@@ -46,114 +46,7 @@ import org.osgi.util.tracker.BundleTrackerCustomizer;
  * @since 0.0.1
  */
 public abstract class AbstractComponentExtender extends
-        AbstractComponentWithCompendium implements ComponentExtenderService {
-
-    /**
-     * This class is used to track 'extendee' bundles.
-     * 
-     * @author Cristiano Gavião
-     * @since 0.0.1
-     */
-    protected class ContributorBundleTracker extends
-            BundleTracker<ContributorBundleTrackerObject> {
-
-        /**
-         * 
-         * @param abstractComponentExtender
-         * @param context
-         * @param stateMask
-         * @param customizer
-         * @throws ExceptionComponentLifecycle
-         */
-        protected ContributorBundleTracker(
-                BundleContext context,
-                int stateMask,
-                BundleTrackerCustomizer<ContributorBundleTrackerObject> customizer)
-                throws ExceptionComponentUnrecoveredActivationError {
-            super(context, stateMask, customizer);
-            // this.contributionHandlerService = contributionHandlerService;
-            // if (this.contributionHandlerService == null) {
-            // throw new ExceptionComponentUnrecoveredActivationError(
-            // "An instance of ContributionHandlerService wasn't set.");
-            // }
-        }
-
-        @Override
-        public ContributorBundleTrackerObject addingBundle(
-                Bundle contributorBundle, BundleEvent event) {
-
-            String header = contributorBundle.getHeaders().get(
-                    getExtenderContributorManifestHeader());
-
-            if (header == null) {
-                trace("Ignored contributor bundle '{}' for '{}' extender.",
-                        contributorBundle.getSymbolicName(),
-                        getExtenderContributorManifestHeader());
-                return null;
-            }
-            if (header.isEmpty()) {
-                warn("Header values wasn't informed, so contributor bundle '{}' for '{}' extender was ignored.",
-                        contributorBundle.getSymbolicName(),
-                        getExtenderContributorManifestHeader());
-                return null;
-            }
-
-            ContributorBundleTrackerObject contributorBundleTrackerObject = null;
-            try {
-                debug("Processing contributor bundle '{}' for '{}' extender using {}.",
-                        contributorBundle.getSymbolicName(),
-                        getExtenderContributorManifestHeader(),
-                        getContributionHandlerService().getHandlerName());
-                String headerName = getExtenderContributorManifestHeader();
-                String headerValue = contributorBundle.getHeaders().get(
-                        headerName);
-
-                contributorBundleTrackerObject = getContributionHandlerService()
-                        .whenContributorBundleActivated(contributorBundle,
-                                headerName, headerValue);
-            } catch (Exception e) {
-                error("Problems occurred while evaluating contribution of bundle '{}'.",
-                        contributorBundle.getSymbolicName(), e);
-                return null;
-            }
-
-            return contributorBundleTrackerObject;
-
-        }
-
-        @Override
-        public void modifiedBundle(Bundle bundle, BundleEvent event,
-                ContributorBundleTrackerObject contributorBundleTrackerObject) {
-
-            try {
-
-                getContributionHandlerService().whenContributorBundleModified(
-                        contributorBundleTrackerObject);
-                debug("Contributor bundle '{}' for '{}' was modified.",
-                        bundle.getSymbolicName(),
-                        getExtenderContributorManifestHeader());
-            } catch (Exception e) {
-                warn("Problem occurred on mofification of contributor bundle '{}'.",
-                        bundle.getSymbolicName(), e);
-            }
-
-        }
-
-        @Override
-        public void removedBundle(Bundle bundle, BundleEvent event,
-                ContributorBundleTrackerObject contributorBundleTrackerObject) {
-            try {
-                getContributionHandlerService().whenContributorBundleRemoved(
-                        contributorBundleTrackerObject);
-                debug("Contributor bundle '{}' for '{}' was removed.",
-                        bundle.getSymbolicName(),
-                        getExtenderContributorManifestHeader());
-            } catch (Exception e) {
-                warn("Problem occurred on removal of contributor bundle '{}'.",
-                        bundle.getSymbolicName(), e);
-            }
-        }
-    }
+        AbstractComponentWithCompendium implements ExtenderService {
 
     private final AtomicReference<ContributionHandlerService> contributionHandlerServiceRef = new AtomicReference<>();
 
@@ -166,12 +59,12 @@ public abstract class AbstractComponentExtender extends
      * The manifest header used to identify that a bundle is a contributor for
      * an extender.
      */
-    private String extenderContributorManifestHeader = null;
+    private volatile String extenderContributorManifestHeader = null;
 
     /**
      * Defines which bundle states should tracked.
      */
-    private int stateMask;
+    private volatile int stateMask;
 
     /**
      * A default constructor is required by the OSGi Declarative Service.
@@ -188,16 +81,16 @@ public abstract class AbstractComponentExtender extends
     @SuppressWarnings("rawtypes")
     protected AbstractComponentExtender(BundleContext bundleContext,
             ComponentContext componentContext,
+            ContributionHandlerService contributionHandlerService,
             Map<Class<?>, PluggableServiceTracker> serviceTrackers,
             Set<PluggableEventTracker> eventTrackers) {
         super(bundleContext, componentContext, serviceTrackers, eventTrackers);
+        bindContributionHandlerService(contributionHandlerService);
     }
 
-    @Reference(policy = ReferencePolicy.DYNAMIC)
     protected void bindContributionHandlerService(
             ContributionHandlerService contributionHandlerService) {
         this.contributionHandlerServiceRef.set(contributionHandlerService);
-        getContributorBundleTracker().open();
     }
 
     @Override
@@ -205,10 +98,28 @@ public abstract class AbstractComponentExtender extends
 
     }
 
-    /**
-     * 
-     * @param properties
-     */
+    @Override
+    protected void doAfterActivateComponent()
+            throws ExceptionComponentLifecycle {
+        super.doAfterActivateComponent();
+        if (getContributionHandlerService() == null) {
+            throw new ExceptionComponentExtenderSetup(
+                    "A ContributionHandlerService instance was not properly bound to this component. "
+                            + "Please, override the bindContributionHandlerService() method adding a proper @Reference annotation to it.");
+
+        } else { // start tracking for bundles
+            getContributorBundleTracker().open();
+        }
+    }
+
+    @Override
+    protected void doBeforeDeactivateComponent()
+            throws ExceptionComponentLifecycle {
+        super.doBeforeDeactivateComponent();
+        // close the bundle tracker
+        getContributorBundleTracker().close();
+    }
+
     protected void doRuntimePropertiesProcessing(
             Dictionary<String, Object> properties) {
 
@@ -229,9 +140,10 @@ public abstract class AbstractComponentExtender extends
                     "The manifest header name service property must be set for the extender component.");
         }
 
-        if (stateMaskLoc instanceof Integer) {
+        if (stateMaskLoc instanceof Integer && (Integer) stateMaskLoc != 0) {
             stateMask = (int) stateMaskLoc;
-        }
+        } else
+            stateMask = Bundle.ACTIVE;
     }
 
     protected final ContributionHandlerService getContributionHandlerService() {
@@ -246,8 +158,8 @@ public abstract class AbstractComponentExtender extends
     protected final ContributorBundleTracker getContributorBundleTracker() {
 
         if (contributorBundleTracker == null) {
-            contributorBundleTracker = this.new ContributorBundleTracker(
-                    getBundleContext(), stateMask, null);
+            contributorBundleTracker = new ContributorBundleTracker(this,
+                    getBundleContext(), getStateMask(), null);
         }
         return contributorBundleTracker;
     }
@@ -265,19 +177,63 @@ public abstract class AbstractComponentExtender extends
         return stateMask;
     }
 
-    // TODO must decide what to do in this case. for now just ignoring...
+    // for now just ignoring...
     @Override
-    protected final void modified(ComponentContext context)
+    protected void modified(ComponentContext context)
             throws ExceptionComponentLifecycle {
-        super.modified(context);
     }
 
     protected final void unbindContributionHandlerService(
             ContributionHandlerService contributionHandlerService) {
-        // closed the bundle tracker
-        getContributorBundleTracker().close();
         contributionHandlerServiceRef.compareAndSet(contributionHandlerService,
                 null);
     }
 
+    /**
+     * This method is called by the BundleTracker when a specific filtered
+     * bundle is arrived.
+     */
+    public ContributorBundle whenContributorBundleIsActivated(
+            Bundle contributorBundle, String headerName, String headerValue) {
+        ContributorBundle contributorBundleInstance = getContributionHandlerService()
+                .createContributorBundleInstance(contributorBundle);
+
+        Iterable<String> candidates = Splitter.on(",").trimResults()
+                .omitEmptyStrings().split(headerValue);
+
+        for (String candidateItem : candidates) {
+            if (getContributionHandlerService().isResourceUrlValid(
+                    candidateItem)) {
+                URL resourceURL;
+                try {
+                    resourceURL = new URL(candidateItem);
+                } catch (MalformedURLException e) {
+                    throw new ExceptionComponentExtenderSetup(e);
+                }
+                contributorBundleInstance
+                        .addContributionItem(getContributionHandlerService()
+                                .createContributionItemFromResourceFile(
+                                        contributorBundleInstance, resourceURL));
+            } else {
+                List<ContributionItem> items = getContributionHandlerService()
+                        .createContributionItemsForDiscoveredResources(
+                                contributorBundleInstance, candidateItem);
+                if (items != null && !items.isEmpty()) {
+                    contributorBundleInstance.contributionItems().addAll(items);
+                }
+            }
+        }
+        return contributorBundleInstance;
+    }
+
+    public void whenContributorBundleIsModified(
+            ContributorBundle contributorBundleInstance) {
+        // Ignoring this because no use case was found
+    }
+
+    public void whenContributorBundleIsRemoved(
+            ContributorBundle contributorBundleInstance) {
+        getContributionHandlerService().removeContributionItems(
+                contributorBundleInstance);
+    }
 }

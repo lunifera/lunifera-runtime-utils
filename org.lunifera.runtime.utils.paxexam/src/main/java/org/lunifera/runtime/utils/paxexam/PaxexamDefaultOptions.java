@@ -18,24 +18,16 @@ import static org.ops4j.pax.exam.CoreOptions.bundle;
 import static org.ops4j.pax.exam.CoreOptions.cleanCaches;
 import static org.ops4j.pax.exam.CoreOptions.frameworkProperty;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.exam.CoreOptions.streamBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 import static org.ops4j.pax.exam.CoreOptions.when;
-import static org.osgi.framework.Constants.BUNDLE_ACTIVATIONPOLICY;
-import static org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME;
-import static org.osgi.framework.Constants.BUNDLE_VERSION;
-import static org.osgi.framework.Constants.EXPORT_PACKAGE;
-import static org.osgi.framework.Constants.IMPORT_PACKAGE;
 
-import org.lunifera.runtime.utils.paxexam.junit.AbstractPaxexamIntegrationTestClass;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
 import org.ops4j.pax.exam.options.CompositeOption;
 import org.ops4j.pax.exam.options.DefaultCompositeOption;
-import org.ops4j.pax.exam.options.UrlProvisionOption;
 import org.ops4j.pax.exam.options.libraries.JUnitBundlesOption;
-import org.ops4j.pax.tinybundles.core.TinyBundles;
+import org.ops4j.pax.exam.util.PathUtils;
 
 /**
  * This class provides useful Pax-Exam options in order to setup integration
@@ -61,15 +53,23 @@ public class PaxexamDefaultOptions {
      * <p>
      * Currently the options are: equinox_luna, felix.
      */
-    public final static String OSGi_FRAMEWORK_PROPERTY = "osgi.framework";
+    public final static String OSGi_FRAMEWORK_PROPERTY = "lunifera.itests.framework";
+    public final static String PAX_EXAM_VERSION_PROPERTY = "paxexam.version";
+    public final static String PROJECT_VERSION_PROPERTY = "project.version";
 
     public final static String FRAMEWORK_IN_USE = System
             .getProperty(OSGi_FRAMEWORK_PROPERTY);
 
+    public final static String PAX_EXAM_VERSION = System
+            .getProperty(PAX_EXAM_VERSION_PROPERTY);
+
+    public final static String PROJECT_VERSION = System
+            .getProperty(PROJECT_VERSION_PROPERTY);
+
     private static Option addCodeCoverageOption() {
         String coverageCommand = System.getProperty(COVERAGE_COMMAND);
-        System.out.println("jacoco: " + coverageCommand);
         if (coverageCommand != null) {
+            System.out.println("Jacoco:" + coverageCommand);
             return CoreOptions.vmOption(coverageCommand);
         }
         return null;
@@ -83,25 +83,25 @@ public class PaxexamDefaultOptions {
             Option... extraOptions) {
 
         DefaultCompositeOption options = new DefaultCompositeOption();
-
-        // repository(
-        // "http://maven.lunifera.org:8086/nexus/content/repositories/releases/")
-        // .id("lunifera"),
-        options.add(junitBundles());
         options.add(when(cleanCaches).useOptions(cleanCaches()));
+        options.add(junitBundles());
+        System.out.println("OSGi Framework: " + FRAMEWORK_IN_USE);
+        System.out.println("Pax-Exam version: " + PAX_EXAM_VERSION);
+        System.out.println("Logback file: " + PathUtils.getBaseDir()
+                + "/src/test/resources/logback-test.xml");
         if (isFelix()) {
             options.add(felix());
         } else
             if (isEquinoxLuna()) {
                 options.add(equinox());
             } else
-                if (isEquinoxKepler()) {
+                if (isEquinoxMars()) {
                     options.add(equinox());
                 }
         options.add(mavenBundle("org.lunifera.osgi", "javax.persistence")
                 .versionAsInProject());
         options.add(mavenBundle("org.lunifera.osgi",
-                "org.eclipse.equinox.region").versionAsInProject());
+                "org.eclipse.equinox.region").noStart().versionAsInProject());
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.bundlerepository").startLevel(2)
                 .versionAsInProject());
@@ -120,35 +120,24 @@ public class PaxexamDefaultOptions {
         options.add(mavenBundle("org.slf4j", "slf4j-api").versionAsInProject());
         options.add(mavenBundle("ch.qos.logback", "logback-core")
                 .versionAsInProject());
+//        options.add(mavenBundle("org.slf4j", "osgi-over-slf4j")
+//                .versionAsInProject().start());
         options.add(mavenBundle("ch.qos.logback", "logback-classic")
                 .versionAsInProject());
         if (extraOptions != null) {
             options.add(extraOptions);
         }
         options.add(addCodeCoverageOption());
-        options.add(buildParentItestBundle());
-        options.add(systemProperty("eclipse.consoleLog").value("true"),
+        options.add(
+                systemProperty("eclipse.consoleLog").value("true"),
                 systemProperty("eclipse.log.level").value("DEBUG"),
-                systemProperty("lunifera.logging.level").value("trace"));
+                systemProperty("pax.exam.logging").value("none"),
+                systemProperty("pax.exam.system").value("default"),
+//                systemProperty("logback.configurationFile").value(
+//                        "file:" + PathUtils.getBaseDir()
+//                                + "/src/test/resources/logback-test.xml"),
+                systemProperty("lunifera.logging.level").value("TRACE"));
         return OptionUtils.expand(options);
-    }
-
-    public static UrlProvisionOption buildParentItestBundle() {
-        return streamBundle(TinyBundles
-                .bundle()
-                .add(AbstractPaxexamIntegrationTestClass.class)
-                .add(PaxexamDefaultOptions.class)
-                .set(BUNDLE_ACTIVATIONPOLICY, "lazy")
-                .set(EXPORT_PACKAGE, "org.lunifera.runtime.utils.paxexam.junit")
-                .set(BUNDLE_SYMBOLICNAME,
-                        "org.lunifera.runtime.utils.paxexam.junit")
-                .set(BUNDLE_VERSION, "1.0.0")
-                .set(IMPORT_PACKAGE,
-                        "org.lunifera.runtime.utils.paxexam.junit,"
-                                + "javax.inject,org.junit,org.ops4j.pax.exam;version=\"[3.5,4)\","
-                                + "org.ops4j.pax.exam.options;version=\"[3.5,4)\",org.ops4j.pax.exam.options.extra;version=\"[3.5,4)\","
-                                + "org.osgi.framework;version=\"[1.6,2)\",org.osgi.util.tracker;version=\"[1.5,2)\"")
-                .build(TinyBundles.withClassicBuilder()));
     }
 
     public static CompositeOption equinox() {
@@ -193,16 +182,16 @@ public class PaxexamDefaultOptions {
         DefaultCompositeOption options = new DefaultCompositeOption();
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.configadmin").versionAsInProject()
-                .startLevel(1));
+                .startLevel(2));
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.eventadmin").versionAsInProject().startLevel(
-                2));
+                1));
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.gogo.runtime").start().versionAsInProject());
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.metatype")
                 .versionAsInProject());
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.prefs")
-                .versionAsInProject().startLevel(2));
+                .versionAsInProject().startLevel(3));
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.log")
                 .versionAsInProject().startLevel(1));
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.scr")
@@ -212,8 +201,12 @@ public class PaxexamDefaultOptions {
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.coordinator").version("1.0.0").startLevel(2));
         options.add(frameworkProperty(
-                "org.osgi.framework.system.packages.extra")
-                .value("org.ops4j.pax.exam;version=3.5.0,org.ops4j.pax.exam.options;version=3.5.0,org.ops4j.pax.exam.util;version=3.5.0,org.w3c.dom.traversal"));
+                "org.osgi.framework.system.packages.extra").value(
+                "org.ops4j.pax.exam;version=\"" + PAX_EXAM_VERSION
+                        + "\",org.ops4j.pax.exam.options;version=\""
+                        + PAX_EXAM_VERSION
+                        + "\",org.ops4j.pax.exam.util;version=\""
+                        + PAX_EXAM_VERSION + "\",org.w3c.dom.traversal"));
 
         if (isConsoleOn()) {
             options.add(mavenBundle("org.lunifera.osgi",
@@ -234,19 +227,18 @@ public class PaxexamDefaultOptions {
             return false;
     }
 
-    public static boolean isEquinoxKepler() {
-        String env = System.getProperty(OSGi_FRAMEWORK_PROPERTY);
-        return "equinox_kepler".equals(env) || "equinox-kepler".equals(env);
+    public static boolean isEquinoxMars() {
+        return "equinox_mars".equals(FRAMEWORK_IN_USE)
+                || "equinox-mars".equals(FRAMEWORK_IN_USE);
     }
 
     public static boolean isEquinoxLuna() {
-        String env = System.getProperty(OSGi_FRAMEWORK_PROPERTY);
-        return "equinox_luna".equals(env) || "equinox-luna".equals(env);
+        return "equinox_luna".equals(FRAMEWORK_IN_USE)
+                || "equinox-luna".equals(FRAMEWORK_IN_USE);
     }
 
     public static boolean isFelix() {
-
-        return "felix".equals(System.getProperty(OSGi_FRAMEWORK_PROPERTY));
+        return "felix".equals(FRAMEWORK_IN_USE);
     }
 
     public static boolean isTraceOn() {
@@ -261,17 +253,16 @@ public class PaxexamDefaultOptions {
      */
     public static CompositeOption junitBundles() {
         DefaultCompositeOption options = new DefaultCompositeOption();
-
-        options.add(new OrbitJUnitBundlesOption());
+        options.add(new JUnitBundlesOrbitOption());
         options.add(systemProperty("pax.exam.invoker").value("junit"));
         options.add(bundle("link:classpath:META-INF/links/org.ops4j.pax.exam.invoker.junit.link"));
-
-        options.add(mavenBundle("org.lunifera.osgi", "org.hamcrest.integration")
-                .versionAsInProject());
-        options.add(mavenBundle("org.lunifera.osgi", "org.hamcrest.library")
-                .versionAsInProject());
-        options.add(mavenBundle("org.lunifera.osgi", "org.hamcrest.core")
-                .versionAsInProject());
+        // options.add(bundle("link:classpath:META-INF/links/org.ops4j.pax.tipi.hamcrest.core.link"));
+        options.add(mavenBundle("org.lunifera.osgi",
+                "org.hamcrest.integration", "1.3.0.v201305210900"));
+        options.add(mavenBundle("org.lunifera.osgi", "org.hamcrest.library",
+                "1.3.0.v201305281000"));
+        options.add(mavenBundle("org.lunifera.osgi", "org.hamcrest.core",
+                "1.3.0.v201303031735"));
         return options;
     }
 

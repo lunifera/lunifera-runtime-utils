@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * An abstract class to be inherited by components that requires a logging, an
- * event admin, preference and some others OSGi compendium services bounded at
+ * event admin, a preference and some others OSGi compendium services bounded at
  * activation time.
  * <p>
  * Unfortunately, OSGi DS Annotations don't support inheritance, so every DS
@@ -132,15 +132,16 @@ public abstract class AbstractComponentWithCompendium extends
 
         super.activate(context);
 
-        debug("({}) - Starting annotations processing...", getId());
+        trace("({}) - Starting activation of component {}(v{}) -> {}.", getId(), getName(), getVersion(), getLocation());
+        trace("({}) - Processing annotations...", getId());
         doRuntimeAnnotationsProcessing();
 
         if (!getProperties().isEmpty()) {
-            debug("({}) - Starting properties processing...", getId());
+            trace("({}) - Processing properties...", getId());
             doRuntimePropertiesProcessing(getProperties());
         }
 
-        debug("({}) - Defining events to be tracked...", getId());
+        trace("({}) - Defining events to be tracked...", getId());
         defineEventsToBeTracked();
         registerDefinedEventTrackers();
 
@@ -149,14 +150,14 @@ public abstract class AbstractComponentWithCompendium extends
         enableInnerServiceTrackers = (boolean) (enableTrackersObj != null ? enableTrackersObj
                 : false);
         if (enableInnerServiceTrackers) {
-            debug("({}) - Defining the inner services to be tracked...",
+            trace("({}) - Defining the inner services to be tracked...",
                     getId());
             defineInnerServicesToBeTracked();
             openDefinedInnerServiceTrackers();
         }
 
         try {
-            debug("({}) - Running the pre-activate procedure...", getId());
+            trace("({}) - Running the pre-activate procedure...", getId());
             doBeforeActivateComponent();
         } catch (ExceptionComponentLifecycle e) {
             error("Error in the pre-activate procedure.", e);
@@ -164,7 +165,7 @@ public abstract class AbstractComponentWithCompendium extends
         }
 
         try {
-            debug("({}) - Running the activate procedure...", getId());
+            trace("({}) - Running the activate procedure...", getId());
             doWhenActivateComponent();
         } catch (ExceptionComponentLifecycle e) {
             error("Error in the activate procedure.", e);
@@ -172,7 +173,7 @@ public abstract class AbstractComponentWithCompendium extends
         }
 
         try {
-            debug("({}) - Running the pos-activate procedure...", getId());
+            trace("({}) - Running the pos-activate procedure...", getId());
             doAfterActivateComponent();
         } catch (ExceptionComponentLifecycle e) {
             error("Error in the pos-activate procedure.", e);
@@ -186,7 +187,8 @@ public abstract class AbstractComponentWithCompendium extends
      * 
      * @param configurationAdmin
      */
-    protected void bindConfigurationAdmin(ConfigurationAdmin configurationAdmin) {
+    protected void bindConfigurationAdminService(
+            ConfigurationAdmin configurationAdmin) {
         this.configAdminServiceRef.set(configurationAdmin);
         trace("({}) - Bound ConfigurationAdmin for component '{}'.", getId(),
                 this.getClass().getSimpleName());
@@ -196,7 +198,7 @@ public abstract class AbstractComponentWithCompendium extends
      * 
      * @param eventAdmin
      */
-    protected void bindEventAdmin(EventAdmin eventAdmin) {
+    protected void bindEventAdminService(EventAdmin eventAdmin) {
         this.eventAdminServiceRef.set(eventAdmin);
         trace("({}) - Bound EventAdmin for component '{}'.", getId(), this
                 .getClass().getSimpleName());
@@ -268,18 +270,18 @@ public abstract class AbstractComponentWithCompendium extends
 
         unregisterEventTrackers();
 
-        innerPluggableServiceTrackers.clear();
+        getInnerPluggableServiceTrackers().clear();
 
-        eventTrackers.clear();
+        getEventTrackers().clear();
 
         super.deactivate(context);
     }
 
-    protected final void debug(String msg) {
+    public final void debug(String msg) {
         getLoggerService().debug(msg);
     }
 
-    protected final void debug(String format, Object... arguments) {
+    public final void debug(String format, Object... arguments) {
         getLoggerService().debug(format, arguments);
     }
 
@@ -408,16 +410,12 @@ public abstract class AbstractComponentWithCompendium extends
 
     }
 
-    protected final void error(String msg) {
+    public final void error(String msg) {
         getLoggerService().error(msg);
     }
 
-    protected final void error(String format, Object... arguments) {
-        getLoggerService().error(format, arguments);
-    }
-
-    protected final void error(String format, Throwable throwable) {
-        getLoggerService().error(format, throwable);
+    public final void error(String message, Throwable throwable) {
+        getLoggerService().error(message, throwable);
     }
 
     /**
@@ -425,7 +423,7 @@ public abstract class AbstractComponentWithCompendium extends
      * 
      * @return the EventAdmin service instance
      */
-    protected final ConfigurationAdmin getConfigurationAdmin() {
+    protected final ConfigurationAdmin getConfigurationAdminService() {
         return configAdminServiceRef.get();
     }
 
@@ -559,11 +557,11 @@ public abstract class AbstractComponentWithCompendium extends
         sendEvent(eventTopic, properties);
     }
 
-    protected final void trace(String msg) {
+    public final void trace(String msg) {
         getLoggerService().trace(msg);
     }
 
-    protected final void trace(String format, Object... arguments) {
+    public final void trace(String format, Object... arguments) {
         getLoggerService().trace(format, arguments);
     }
 
@@ -642,7 +640,7 @@ public abstract class AbstractComponentWithCompendium extends
      * 
      * @param configurationAdmin
      */
-    protected final void unbindConfigurationAdmin(
+    protected final void unbindConfigurationAdminService(
             ConfigurationAdmin configurationAdmin) {
         trace("({}) - Unbound ConfigurationAdmin for component '{}'.", getId(),
                 this.getClass().getName());
@@ -655,7 +653,7 @@ public abstract class AbstractComponentWithCompendium extends
      * 
      * @param eventAdmin
      */
-    protected final void unbindEventAdmin(EventAdmin eventAdmin) {
+    protected final void unbindEventAdminService(EventAdmin eventAdmin) {
         trace("({}) - Unbound EventAdmin for component '{}'.", getId(), this
                 .getClass().getName());
         eventAdminServiceRef.compareAndSet(eventAdmin, null);
@@ -698,11 +696,11 @@ public abstract class AbstractComponentWithCompendium extends
         }
     }
 
-    protected final void warn(String msg) {
+    public final void warn(String msg) {
         getLoggerService().warn(msg);
     }
 
-    protected final void warn(String format, Object... arguments) {
+    public final void warn(String format, Object... arguments) {
         getLoggerService().warn(format, arguments);
     }
 }

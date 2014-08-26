@@ -8,25 +8,26 @@
 <!--# Contributors: -->
 <!--# Cristiano Gavião (C4biz)- initial API and implementation -->
 <!--#======================================================================= -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.lunifera.releng.maven</groupId>
 		<artifactId>lunifera-releng-maven-parent-mbp</artifactId>
-		<version>0.9.4</version>
+		<version>0.12.2</version>
 		<relativePath />
 	</parent>
 
 	<groupId>org.lunifera.runtime</groupId>
 	<artifactId>lunifera-runtime-utils</artifactId>
-	<version>0.6.1-SNAPSHOT</version>
+	<version>0.7.1-SNAPSHOT</version>
 	<name>Lunifera - Runtime Utilities</name>
 	<description>A group of projects that provides runtime utilities to be used with Lunifera OSGi Subsystems framework.</description>
 	<packaging>pom</packaging>
 
 	<properties>
-		<lunifera.releng.version>0.9.4</lunifera.releng.version>
+		<lunifera.releng.version>0.12.2</lunifera.releng.version>
 		<lunifera.gitrepo.name>lunifera-runtime-utils</lunifera.gitrepo.name>
 		<license.copyrightOwners>C4biz Softwares ME, Loetz KG</license.copyrightOwners>
 	</properties>
@@ -49,6 +50,7 @@
 	<modules>
 		<module>org.lunifera.runtime.utils.paxexam</module>
 		<module>org.lunifera.runtime.utils.osgi</module>
+		<module>org.lunifera.runtime.utils.osgi.logging</module>
 	</modules>
 
 	<profiles>
@@ -57,11 +59,14 @@
 			<activation>
 				<property>
 					<name>lunifera.build.itests.run</name>
-					<value>true</value>
 				</property>
 			</activation>
 			<modules>
-				<!-- <module>org.lunifera.runtime.utils.itests</module> -->
+				<module>org.lunifera.runtime.utils.osgi.itests</module>
+				<module>org.lunifera.runtime.utils.osgi.itests.samples.config</module>
+				<module>org.lunifera.runtime.utils.osgi.itests.samples.bundlev1</module>
+				<module>org.lunifera.runtime.utils.osgi.itests.samples.bundlev2</module>
+				<module>org.lunifera.runtime.utils.osgi.itests.samples.extender</module>
 			</modules>
 		</profile>
 	</profiles>
