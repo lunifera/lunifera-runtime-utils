@@ -14,6 +14,8 @@ package org.lunifera.runtime.utils.osgi.itests;
  * #L%
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.knowhowlab.osgi.testing.assertions.BundleAssert.assertBundleAvailable;
 import static org.knowhowlab.osgi.testing.assertions.ServiceAssert.assertServiceAvailable;
 import static org.ops4j.pax.exam.CoreOptions.bundle;
@@ -47,7 +49,8 @@ import org.osgi.framework.ServiceEvent;
 
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
-public class ExtenderIntegrationTest extends AbstractUtilsIntegrationTest {
+public class MultipleExtenderVersionsIntegrationTest extends
+        AbstractUtilsIntegrationTest {
 
     public static UrlProvisionOption workspaceBundle(String artifactId) {
         String url = String.format("reference:file:%s/../%s/target/classes",
@@ -60,6 +63,7 @@ public class ExtenderIntegrationTest extends AbstractUtilsIntegrationTest {
 
     @Override
     protected DefaultCompositeOption bundlesToBeInstalled() {
+        assertThat(PaxexamDefaultOptions.PROJECT_VERSION, notNullValue());
         return super
                 .bundlesToBeInstalled()
                 .add(mavenBundle("org.lunifera.runtime.utils",
@@ -70,14 +74,19 @@ public class ExtenderIntegrationTest extends AbstractUtilsIntegrationTest {
                         PaxexamDefaultOptions.PROJECT_VERSION).startLevel(4))
                 .add(mavenBundle(
                         "org.lunifera.runtime.utils",
-                        "org.lunifera.runtime.utils.osgi.itests.samples.config",
-                        PaxexamDefaultOptions.PROJECT_VERSION).startLevel(5))
+                        "org.lunifera.runtime.utils.osgi.itests.samples.extender",
+                        PaxexamDefaultOptions.PROJECT_VERSION).startLevel(4))
                 .add(mavenBundle(
                         "org.lunifera.runtime.utils",
-                        "org.lunifera.runtime.utils.osgi.itests.samples.bundlev1",
+                        "org.lunifera.runtime.utils.osgi.itests.samples.config",
                         PaxexamDefaultOptions.PROJECT_VERSION).startLevel(4))
-                .add(mavenBundle("org.lunifera.runtime.utils",
-                        "org.lunifera.runtime.utils.osgi.itests.samples.extender",
+//                .add(mavenBundle(
+//                        "org.lunifera.runtime.utils",
+//                        "org.lunifera.runtime.utils.osgi.itests.samples.bundlev1",
+//                        PaxexamDefaultOptions.PROJECT_VERSION).startLevel(4))
+                .add(mavenBundle(
+                        "org.lunifera.runtime.utils",
+                        "org.lunifera.runtime.utils.osgi.itests.samples.bundlev2",
                         PaxexamDefaultOptions.PROJECT_VERSION).startLevel(4));
     }
 
@@ -94,29 +103,31 @@ public class ExtenderIntegrationTest extends AbstractUtilsIntegrationTest {
     @Test
     public void ensureExtenderComponentIsFunctional() {
 
+        System.out.println("LOCAL test: " + bc.getBundle().getLocation());
+
         ServiceUtils.waitForServiceEvent(bc,
                 org.apache.felix.scr.ScrService.class, ServiceEvent.REGISTERED,
-                1000);
+                5000);
         ServiceUtils.waitForServiceEvent(bc, ExtenderService.class,
-                ServiceEvent.REGISTERED, 1000);
+                ServiceEvent.REGISTERED, 5000);
         ServiceUtils.waitForServiceEvent(bc, ContributionHandlerService.class,
-                ServiceEvent.REGISTERED, 1000);
+                ServiceEvent.REGISTERED, 15000);
 
         ensureRequiredBundlesAreAvailable();
         ensureRequiredServicesAreAvailable();
 
+        assertServiceAvailable("ContributionHandlerService is not available",
+                ContributionHandlerService.class, 5000);
+        assertServiceAvailable("ExtenderService was not available",
+                ExtenderService.class, 5000);
+        assertServiceAvailable("ServiceFactoryTest was not registered",
+                ServiceFactoryTest.class);
+        assertServiceAvailable("ServiceActivatedByExtender was not registered",
+                ServiceActivatedByExtender.class, 5000);
+
         ConfigurationAdminAssert.assertConfigurationAvailable(bc,
                 ConfigurationAdminUtils.createConfigurationFilter(null,
                         "servicefactory1", null));
-        assertServiceAvailable("ContributionHandlerService is not available",
-                ContributionHandlerService.class, 5000);
-        assertServiceAvailable("ServiceFactoryTest was not registered",
-                ServiceFactoryTest.class);
-        assertServiceAvailable("ExtenderService was not available",
-                ExtenderService.class, 5000);
-        assertServiceAvailable("ServiceActivatedByExtender was not registered",
-                ServiceActivatedByExtender.class);
-
         ConfigurationAdminAssert.assertConfigurationAvailable(bc,
                 ConfigurationAdminUtils.createConfigurationFilter("service1",
                         null, null));
@@ -138,8 +149,9 @@ public class ExtenderIntegrationTest extends AbstractUtilsIntegrationTest {
     public void ensureRequiredBundlesAreAvailable() {
         super.ensureRequiredBundlesAreAvailable();
         assertBundleAvailable("org.lunifera.runtime.utils.osgi");
-        assertBundleAvailable("org.lunifera.runtime.utils.osgi.itests.samples.bundlev1");
         assertBundleAvailable("org.lunifera.runtime.utils.osgi.itests.samples.config");
+        assertBundleAvailable("org.lunifera.runtime.utils.osgi.itests.samples.bundlev1");
+        assertBundleAvailable("org.lunifera.runtime.utils.osgi.itests.samples.bundlev2");
         assertBundleAvailable("org.lunifera.runtime.utils.osgi.itests.samples.extender");
     }
 

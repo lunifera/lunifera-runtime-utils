@@ -2,7 +2,7 @@ package org.lunifera.runtime.utils.osgi.itests;
 
 /*
  * #%L
- * Lunifera Subsystems - Runtime Kernel - Integration Tests
+ * Lunifera Runtime Utilities - for OSGi - Integration Tests
  * %%
  * Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
  * %%

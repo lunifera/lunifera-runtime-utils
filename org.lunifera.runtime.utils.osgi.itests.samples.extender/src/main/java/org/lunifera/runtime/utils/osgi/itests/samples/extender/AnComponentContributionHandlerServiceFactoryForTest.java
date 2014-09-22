@@ -2,7 +2,7 @@ package org.lunifera.runtime.utils.osgi.itests.samples.extender;
 
 /*
  * #%L
- * Lunifera Subsystems - Runtime Kernel - Integration Tests
+ * org.lunifera.runtime.utils.osgi.itests.samples.extender
  * %%
  * Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
  * %%

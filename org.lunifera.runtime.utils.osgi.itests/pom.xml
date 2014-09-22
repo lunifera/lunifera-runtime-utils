@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
 	<modelVersion>4.0.0</modelVersion>
-
 	<parent>
-		<groupId>org.lunifera.runtime</groupId>
+		<groupId>org.lunifera.runtime.utils</groupId>
 		<artifactId>lunifera-runtime-utils</artifactId>
 		<version>0.7.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>org.lunifera.runtime.utils.osgi.itests</artifactId>
-	<name>Lunifera - Runtime Utilities for OSGi - Integration Tests</name>
+	<name>Lunifera Runtime Utilities - for OSGi - Integration Tests</name>
 
 	<scm>
 		<url>${lunifera.scm.url}</url>
@@ -37,37 +35,37 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.lunifera.runtime</groupId>
+			<groupId>org.lunifera.runtime.utils</groupId>
 			<artifactId>org.lunifera.runtime.utils.paxexam</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.lunifera.runtime</groupId>
+			<groupId>org.lunifera.runtime.utils</groupId>
 			<artifactId>org.lunifera.runtime.utils.osgi</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.lunifera.runtime</groupId>
+			<groupId>org.lunifera.runtime.utils</groupId>
 			<artifactId>org.lunifera.runtime.utils.osgi.itests.samples.config</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.lunifera.runtime</groupId>
+			<groupId>org.lunifera.runtime.utils</groupId>
 			<artifactId>org.lunifera.runtime.utils.osgi.itests.samples.bundlev1</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.lunifera.runtime</groupId>
+			<groupId>org.lunifera.runtime.utils</groupId>
 			<artifactId>org.lunifera.runtime.utils.osgi.itests.samples.bundlev2</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.lunifera.runtime</groupId>
+			<groupId>org.lunifera.runtime.utils</groupId>
 			<artifactId>org.lunifera.runtime.utils.osgi.itests.samples.extender</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>

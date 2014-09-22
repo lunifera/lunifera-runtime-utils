@@ -8,7 +8,7 @@ import org.osgi.framework.Bundle;
 
 /*
  * #%L
- * Lunifera Subsystems - Runtime Utilities for OSGi
+ * Lunifera Runtime Utilities - for OSGi
  * %%
  * Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
  * %%

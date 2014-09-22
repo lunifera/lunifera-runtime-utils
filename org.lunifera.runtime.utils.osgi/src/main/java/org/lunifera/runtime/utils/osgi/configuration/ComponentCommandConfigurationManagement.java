@@ -2,7 +2,7 @@ package org.lunifera.runtime.utils.osgi.configuration;
 
 /*
  * #%L
- * org.lunifera.runtime.addons.configuration.zookeeper
+ * Lunifera Runtime Utilities - for OSGi
  * %%
  * Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
  * %%
@@ -31,12 +31,12 @@ import org.osgi.service.component.annotations.Reference;
  * @author Cristiano Gavião
  */
 @Component(enabled = true, immediate = true,
-        service = ComponentCommandControllerConfiguration.class, property = {
+        service = ComponentCommandConfigurationManagement.class, property = {
                 "osgi.command.scope=lunifera.config",
                 "osgi.command.function=list",
                 "osgi.command.function=create",
                 "osgi.command.function=delete" })
-public class ComponentCommandControllerConfiguration extends
+public class ComponentCommandConfigurationManagement extends
         AbstractComponentWithCompendium {
 
     @Reference

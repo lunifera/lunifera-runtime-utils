@@ -2,7 +2,7 @@ package org.lunifera.runtime.utils.osgi.itests.samples.config;
 
 /*
  * #%L
- * org.lunifera.runtime.addons.itests
+ * org.lunifera.runtime.utils.osgi.itests.samples.config
  * %%
  * Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
  * %%
