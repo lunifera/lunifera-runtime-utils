@@ -1,0 +1,124 @@
+<!--#======================================================================= -->
+<!--# Copyright (c) 2012, 2014 C4biz Softwares ME, Loetz KG. -->
+<!--# All rights reserved. This program and the accompanying materials -->
+<!--# are made available under the terms of the Eclipse Public License v1.0 -->
+<!--# which accompanies this distribution, and is available at -->
+<!--# http://www.eclipse.org/legal/epl-v10.html -->
+<!--# -->
+<!--# Contributors: -->
+<!--# Cristiano Gavião (C4biz)- initial API and implementation -->
+<!--#======================================================================= -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.lunifera.runtime.utils</groupId>
+		<artifactId>lunifera-runtime-utils</artifactId>
+		<version>0.7.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>org.lunifera.runtime.utils.bindex.subsystems</artifactId>
+	<name>Lunifera Runtime Utilities - OSGi Subsystem ResourceAnalyzer for BIndex</name>
+	<description>A bundle that provides a ResourceAnalyzer that enables BIndex to process OSGi Subsystem artifacts.</description>
+	<packaging>bundle</packaging>
+
+	<scm>
+		<connection>${lunifera.scm.connection}</connection>
+		<developerConnection>${lunifera.scm.connection.dev}</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.lunifera.runtime.utils</groupId>
+			<artifactId>org.lunifera.runtime.utils.bindex</artifactId>
+			<version>0.7.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries.subsystem</groupId>
+			<artifactId>org.apache.aries.subsystem.api</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries</groupId>
+			<artifactId>org.apache.aries.util</artifactId>
+			<version>1.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.aries.subsystem</groupId>
+			<artifactId>org.apache.aries.subsystem.core</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>org.apache.aries.application.api</artifactId>
+					<groupId>org.apache.aries.application</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.apache.aries.application.utils</artifactId>
+					<groupId>org.apache.aries.application</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.eclipse.equinox.coordinator</artifactId>
+					<groupId>org.eclipse.equinox</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.eclipse.equinox.region</artifactId>
+					<groupId>org.eclipse.equinox</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<configuration>
+					<unpackBundle>true</unpackBundle>
+					<instructions>
+						<Private-Package>
+							org.osgi.service.subsystem,
+							org.lunifera.runtime.utils.bindex.subsystems,
+							org.apache.aries.subsystem,
+							org.apache.aries.subsystem.core.internal,
+							org.apache.aries.subsystem.core.archive,
+							org.apache.aries.util,
+							org.apache.aries.util.filesystem,
+							org.apache.aries.util.filesystem.impl,
+							org.apache.aries.util.io,
+							org.apache.aries.util.log,
+							org.apache.aries.util.manifest,
+							org.apache.aries.util.nls,
+							org.apache.aries.util.service.registry,
+							org.apache.aries.util.tracker,
+							org.apache.aries.util.tracker.hook,
+							org.apache.aries.util.internal
+						</Private-Package>
+						<Import-Package>
+							org.osgi.service.repository;resolution:=optional;version="[1.0,2)",
+							org.osgi.framework;version="[1.7,2)",
+							org.osgi.framework.wiring;version="[1.1,2)",
+							org.osgi.framework.hooks.weaving;version="[1.0,2)",
+							!org.apache.aries.application.*,
+							org.osgi.service.coordinator;version="[1.0,2)";resolution:=optional,
+							org.eclipse.equinox.region;resolution:=optional,
+							org.osgi.service.framework;resolution:=optional,
+							org.slf4j.*;resolution:=optional,
+							*
+						</Import-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

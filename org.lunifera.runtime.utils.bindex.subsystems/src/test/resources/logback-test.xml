@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Lunifera Runtime Utilities - OSGi Subsystem ResourceAnalyzer for BIndex
+  %%
+  Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
+  %%
+  This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0
+  and Eclipse Distribution License v. 1.0 which accompanies this distribution.
+  The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
+  and the Eclipse Distribution License is available at
+  http://www.eclipse.org/org/documents/edl-v10.php.
+  #L%
+  -->
+
+
+<configuration> 
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
+    <encoder> 
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern> 
+    </encoder> 
+  </appender>  
+  <logger name="org.sculptor.dddsample" level="DEBUG"/>
+  <logger name="de.hunsicker.jalopy.io" level="WARN"/>
+  <root level="TRACE"> 
+    <appender-ref ref="STDOUT"/> 
+  </root> 
+</configuration>
