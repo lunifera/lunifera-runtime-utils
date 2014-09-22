@@ -12,14 +12,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.lunifera.runtime</groupId>
+		<groupId>org.lunifera.runtime.utils</groupId>
 		<artifactId>lunifera-runtime-utils</artifactId>
 		<version>0.7.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>org.lunifera.runtime.utils.paxexam</artifactId>
-	<name>Lunifera - Runtime Utilities for PaxExam integration tests.</name>
+	<name>Lunifera Runtime Utilities - for PaxExam.</name>
 	<description>A jar component that provides integration classes to be used with Pax-Exam.</description>
 	<packaging>jar</packaging>
 

@@ -2,7 +2,7 @@ package org.lunifera.runtime.utils.paxexam;
 
 /*
  * #%L
- * Lunifera Subsystems - Runtime Utilities for PaxExam integration tests.
+ * Lunifera Runtime Utilities - for PaxExam.
  * %%
  * Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
  * %%

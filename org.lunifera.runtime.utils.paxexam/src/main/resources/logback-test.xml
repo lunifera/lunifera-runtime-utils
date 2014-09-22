@@ -22,7 +22,7 @@
 		</encoder>
 	</appender>
 	<logger name="org.apache.aries.subsystem" level="INFO" />
-	<logger name="org.ops4j.pax.exam" level="INFO" />
+	<logger name="org.ops4j.pax.exam" level="DEBUG" />
 	<logger name="org.lunifera" level="DEBUG" />
 	<root level="TRACE">
 		<appender-ref ref="STDOUT" />
