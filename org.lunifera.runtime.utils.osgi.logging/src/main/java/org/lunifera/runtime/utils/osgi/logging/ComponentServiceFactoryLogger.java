@@ -2,7 +2,7 @@ package org.lunifera.runtime.utils.osgi.logging;
 
 /*
  * #%L
- * An add-on to manage logging reports.
+ * Lunifera Runtime Utilities - for Logging with OSGi
  * %%
  * Copyright (C) 2012 - 2014 C4biz Softwares ME, Loetz KG
  * %%
