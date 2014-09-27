@@ -86,23 +86,25 @@
 				<configuration>
 					<unpackBundle>true</unpackBundle>
 					<instructions>
+						<Export-Package>org.lunifera.runtime.utils.bindex.subsystems</Export-Package>
+						
 						<Private-Package>
-							org.osgi.service.subsystem,
+							org.osgi.service.subsystem;-split-package:=first,
 							org.lunifera.runtime.utils.bindex.subsystems,
-							org.apache.aries.subsystem,
-							org.apache.aries.subsystem.core.internal,
-							org.apache.aries.subsystem.core.archive,
-							org.apache.aries.util,
-							org.apache.aries.util.filesystem,
-							org.apache.aries.util.filesystem.impl,
-							org.apache.aries.util.io,
-							org.apache.aries.util.log,
-							org.apache.aries.util.manifest,
-							org.apache.aries.util.nls,
-							org.apache.aries.util.service.registry,
-							org.apache.aries.util.tracker,
-							org.apache.aries.util.tracker.hook,
-							org.apache.aries.util.internal
+							org.apache.aries.subsystem;-split-package:=first,
+							org.apache.aries.subsystem.core.archive;-split-package:=first,
+							org.apache.aries.subsystem.core.internal;-split-package:=first,
+							org.apache.aries.util;-split-package:=first,
+							org.apache.aries.util.filesystem;-split-package:=first,
+							org.apache.aries.util.filesystem.impl;-split-package:=first,
+							org.apache.aries.util.io;-split-package:=first,
+							org.apache.aries.util.log;-split-package:=first,
+							org.apache.aries.util.manifest;-split-package:=first,
+							org.apache.aries.util.nls;-split-package:=first,
+							org.apache.aries.util.service.registry;-split-package:=first,
+							org.apache.aries.util.tracker;-split-package:=first,
+							org.apache.aries.util.tracker.hook;-split-package:=first,
+							org.apache.aries.util.internal;-split-package:=first
 						</Private-Package>
 						<Import-Package>
 							org.osgi.service.repository;resolution:=optional;version="[1.0,2)",
