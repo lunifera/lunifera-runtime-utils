@@ -15,11 +15,11 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import org.osgi.framework.Version;
 
-public class EE {
+public final class EE {
 
 	private String name;
 	private String version;

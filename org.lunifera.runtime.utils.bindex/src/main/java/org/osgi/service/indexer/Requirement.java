@@ -15,7 +15,7 @@ package org.osgi.service.indexer;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.util.Collections;
 import java.util.Map;
@@ -73,7 +73,7 @@ public final class Requirement {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Requirement [namespace=").append(namespace).append(", attributes=").append(attributes).append(", directives=").append(directives).append("]");
+		builder.append("REQUIREMENT [namespace=").append(namespace).append(", attributes=").append(attributes).append(", directives=").append(directives).append("]");
 		return builder.toString();
 	}
 }

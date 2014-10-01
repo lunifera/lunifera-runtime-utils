@@ -70,7 +70,7 @@ public abstract class AbstractComponentContributionHandlerServiceFactory extends
             ContributorBundle contributorBundleInstance, String pid,
             Map<String, Object> properties) {
         ContributionItem item = new ContributionItemDefaultImpl(
-                contributorBundleInstance, null, properties);
+                contributorBundleInstance, properties);
         return item;
     }
 
@@ -84,7 +84,7 @@ public abstract class AbstractComponentContributionHandlerServiceFactory extends
             properties.put(keyValuePair[0], keyValuePair[1]);
         }
         ContributionItem item = new ContributionItemDefaultImpl(
-                contributorBundleTrackerObject, null, properties);
+                contributorBundleTrackerObject, properties);
         return item;
     }
 

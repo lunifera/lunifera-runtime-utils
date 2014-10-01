@@ -15,7 +15,7 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.io.IOException;
 import java.io.InputStream;
@@ -105,7 +105,7 @@ public class KnownBundleAnalyzer implements ResourceAnalyzer {
 	}
 
 	private static enum IndicatorType {
-		Capability("cap="), Requirement("req=");
+		CAPABILITY("cap="), REQUIREMENT("req=");
 
 		String prefix;
 
@@ -126,12 +126,12 @@ public class KnownBundleAnalyzer implements ResourceAnalyzer {
 			IndicatorType type;
 
 			String namespace;
-			if (indicator.startsWith(IndicatorType.Capability.getPrefix())) {
-				type = IndicatorType.Capability;
-				namespace = indicator.substring(IndicatorType.Capability.getPrefix().length());
-			} else if (indicator.startsWith(IndicatorType.Requirement.getPrefix())) {
-				type = IndicatorType.Requirement;
-				namespace = indicator.substring(IndicatorType.Requirement.getPrefix().length());
+			if (indicator.startsWith(IndicatorType.CAPABILITY.getPrefix())) {
+				type = IndicatorType.CAPABILITY;
+				namespace = indicator.substring(IndicatorType.CAPABILITY.getPrefix().length());
+			} else if (indicator.startsWith(IndicatorType.REQUIREMENT.getPrefix())) {
+				type = IndicatorType.REQUIREMENT;
+				namespace = indicator.substring(IndicatorType.REQUIREMENT.getPrefix().length());
 			} else {
 				throw new IllegalArgumentException(MessageFormat.format(
 						"Invalid indicator format in known-bundle parsing for bundle  \"{0}\", expected cap=namespace or req=namespace, found \"{1}\".", bundleRef, indicator));
@@ -142,9 +142,9 @@ public class KnownBundleAnalyzer implements ResourceAnalyzer {
 			Map<String, String> attribs = entry.getValue();
 			Util.copyAttribsToBuilder(builder, attribs);
 
-			if (type == IndicatorType.Capability)
+			if (type == IndicatorType.CAPABILITY)
 				caps.add(builder.buildCapability());
-			else if (type == IndicatorType.Requirement)
+			else if (type == IndicatorType.REQUIREMENT)
 				reqs.add(builder.buildRequirement());
 		}
 	}

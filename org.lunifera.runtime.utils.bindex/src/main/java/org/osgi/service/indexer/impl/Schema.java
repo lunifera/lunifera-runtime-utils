@@ -15,7 +15,7 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 public final class Schema {
 
@@ -44,6 +44,6 @@ public final class Schema {
     public static final String ATTR_TYPE = "type";
     public static final String ATTR_VALUE = "value";
 
-    public static final String TYPE_VERSION = "Version";
+    public static final String TYPE_VERSION = "VERSION";
 
 }

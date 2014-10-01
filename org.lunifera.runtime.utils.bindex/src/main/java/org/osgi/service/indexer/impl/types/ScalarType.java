@@ -13,7 +13,31 @@ package org.osgi.service.indexer.impl.types;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
+/*
+ * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
+ * and it is released under OSGi Specification License, VERSION 2.0
+ */
 public enum ScalarType {
-	String, Version, Long, Double;
+    STRING("String"), VERSION("Version"), LONG("Long"), DOUBLE("Double");
+
+    private String key;
+
+    private ScalarType(String key) {
+        this.key = key;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public static ScalarType fromString(String text) {
+        if (text != null) {
+            for (ScalarType b : ScalarType.values()) {
+                if (text.equalsIgnoreCase(b.key)) {
+                    return b;
+                }
+            }
+        }
+        return null;
+    }
 }

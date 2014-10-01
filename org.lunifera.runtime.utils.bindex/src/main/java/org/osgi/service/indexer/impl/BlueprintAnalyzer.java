@@ -15,7 +15,7 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.util.List;
 
@@ -29,7 +29,7 @@ import org.osgi.service.log.LogService;
 
 public class BlueprintAnalyzer implements ResourceAnalyzer {
 
-	private static final String BUNDLE_BLUEPRINT_HEADER = "Bundle-Blueprint";
+	private static final String BUNDLE_BLUEPRINT_HEADER = "BUNDLE-Blueprint";
 
 	@SuppressWarnings("unused")
 	private LogService log;

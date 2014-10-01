@@ -28,8 +28,7 @@ import org.osgi.util.tracker.BundleTrackerCustomizer;
  * @author Cristiano Gavião
  * @since 0.0.1
  */
-public class ContributorBundleTracker extends
-        BundleTracker<ContributorBundle> {
+public class ContributorBundleTracker extends BundleTracker<ContributorBundle> {
 
     /**
      * 
@@ -42,20 +41,18 @@ public class ContributorBundleTracker extends
      * @param context
      * @param stateMask
      * @param customizer
-     * @throws ExceptionComponentLifecycle
      */
     protected ContributorBundleTracker(
             AbstractComponentExtender abstractComponentExtender,
             BundleContext context, int stateMask,
-            BundleTrackerCustomizer<ContributorBundle> customizer)
-            throws ExceptionComponentUnrecoveredActivationError {
+            BundleTrackerCustomizer<ContributorBundle> customizer) {
         super(context, stateMask, customizer);
         this.abstractComponentExtender = abstractComponentExtender;
     }
 
     @Override
-    public ContributorBundle addingBundle(
-            Bundle contributorBundle, BundleEvent event) {
+    public ContributorBundle addingBundle(Bundle contributorBundle,
+            BundleEvent event) {
 
         String header = contributorBundle.getHeaders().get(
                 this.abstractComponentExtender

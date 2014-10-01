@@ -43,9 +43,9 @@ public class PaxexamDefaultOptions {
     // if specified then agent would be specified otherwise ignored
     public static final String COVERAGE_COMMAND = "jacoco.agent.it.arg";
 
-    public final static String LUNIFERA_OSGi_TRACE_PROPERTY = "lunifera.osgi.trace";
+    public static final String LUNIFERA_OSGi_TRACE_PROPERTY = "lunifera.osgi.trace";
 
-    public final static String OSGI_CONSOLE_PROPERTY = "osgi.console";
+    public static final String OSGI_CONSOLE_PROPERTY = "osgi.console";
 
     /**
      * Property that should be used to specify which OSGi FRAMEWORK_IN_USE to
@@ -53,17 +53,21 @@ public class PaxexamDefaultOptions {
      * <p>
      * Currently the options are: equinox_luna, felix.
      */
-    public final static String OSGi_FRAMEWORK_PROPERTY = "lunifera.itests.framework";
-    public final static String PAX_EXAM_VERSION_PROPERTY = "paxexam.version";
-    public final static String PROJECT_VERSION_PROPERTY = "project.version";
+    public static final String OSGI_FRAMEWORK_PROPERTY = "lunifera.itests.framework";
+    public static final String PAX_EXAM_VERSION_PROPERTY = "paxexam.version";
+    public static final String PROJECT_VERSION_PROPERTY = "project.version";
+    
+    public static final int START_LEVEL_ONE = 1;
+    public static final int START_LEVEL_TWO = 1;
+    public static final int START_LEVEL_THREE = 1;
 
-    public final static String FRAMEWORK_IN_USE = System
-            .getProperty(OSGi_FRAMEWORK_PROPERTY);
+    public static final String FRAMEWORK_IN_USE = System
+            .getProperty(OSGI_FRAMEWORK_PROPERTY);
 
-    public final static String PAX_EXAM_VERSION = System
+    public static final String PAX_EXAM_VERSION = System
             .getProperty(PAX_EXAM_VERSION_PROPERTY);
 
-    public final static String PROJECT_VERSION = System
+    public static final String PROJECT_VERSION = System
             .getProperty(PROJECT_VERSION_PROPERTY);
 
     private static Option addCodeCoverageOption() {
@@ -103,7 +107,7 @@ public class PaxexamDefaultOptions {
         options.add(mavenBundle("org.lunifera.osgi",
                 "org.eclipse.equinox.region").noStart().versionAsInProject());
         options.add(mavenBundle("org.apache.felix",
-                "org.apache.felix.bundlerepository").startLevel(2)
+                "org.apache.felix.bundlerepository").startLevel(START_LEVEL_TWO)
                 .versionAsInProject());
         options.add(mavenBundle("org.apache.aries.subsystem",
                 "org.apache.aries.subsystem.api").versionAsInProject());
@@ -120,22 +124,21 @@ public class PaxexamDefaultOptions {
         options.add(mavenBundle("org.slf4j", "slf4j-api").versionAsInProject());
         options.add(mavenBundle("ch.qos.logback", "logback-core")
                 .versionAsInProject());
-//        options.add(mavenBundle("org.slf4j", "osgi-over-slf4j")
-//                .versionAsInProject().start());
+        // options.add(mavenBundle("org.slf4j", "osgi-over-slf4j")
+        // .versionAsInProject().start());
         options.add(mavenBundle("ch.qos.logback", "logback-classic")
                 .versionAsInProject());
         if (extraOptions != null) {
             options.add(extraOptions);
         }
         options.add(addCodeCoverageOption());
-        options.add(
-                systemProperty("eclipse.consoleLog").value("true"),
+        options.add(systemProperty("eclipse.consoleLog").value("true"),
                 systemProperty("eclipse.log.level").value("DEBUG"),
                 systemProperty("pax.exam.logging").value("none"),
                 systemProperty("pax.exam.system").value("default"),
-//                systemProperty("logback.configurationFile").value(
-//                        "file:" + PathUtils.getBaseDir()
-//                                + "/src/test/resources/logback-test.xml"),
+                // systemProperty("logback.configurationFile").value(
+                // "file:" + PathUtils.getBaseDir()
+                // + "/src/test/resources/logback-test.xml"),
                 systemProperty("lunifera.logging.level").value("TRACE"));
         return OptionUtils.expand(options);
     }
@@ -148,20 +151,20 @@ public class PaxexamDefaultOptions {
         options.add(mavenBundle("org.lunifera.osgi",
                 "org.eclipse.osgi.services").versionAsInProject());
         options.add(mavenBundle("org.lunifera.osgi", "org.eclipse.equinox.ds")
-                .versionAsInProject().startLevel(3));
+                .versionAsInProject().startLevel(START_LEVEL_THREE));
         options.add(mavenBundle("org.lunifera.osgi", "org.eclipse.equinox.cm")
-                .startLevel(1).versionAsInProject());
+                .startLevel(START_LEVEL_ONE).versionAsInProject());
         options.add(mavenBundle("org.lunifera.osgi",
-                "org.eclipse.equinox.event").versionAsInProject().startLevel(2));
+                "org.eclipse.equinox.event").versionAsInProject().startLevel(START_LEVEL_TWO));
         options.add(mavenBundle("org.lunifera.osgi",
                 "org.eclipse.equinox.preferences").versionAsInProject()
-                .startLevel(2));
+                .startLevel(START_LEVEL_TWO));
         options.add(mavenBundle("org.lunifera.osgi", "org.eclipse.equinox.util")
-                .versionAsInProject().startLevel(2));
+                .versionAsInProject().startLevel(START_LEVEL_TWO));
         options.add(mavenBundle("org.lunifera.osgi",
                 "org.eclipse.equinox.common").versionAsInProject());
         options.add(mavenBundle("org.lunifera.osgi", "org.eclipse.osgi.util")
-                .startLevel(2).versionAsInProject());
+                .startLevel(START_LEVEL_TWO).versionAsInProject());
         options.add(mavenBundle("org.lunifera.osgi",
                 "org.eclipse.equinox.coordinator").versionAsInProject());
 
@@ -182,24 +185,24 @@ public class PaxexamDefaultOptions {
         DefaultCompositeOption options = new DefaultCompositeOption();
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.configadmin").versionAsInProject()
-                .startLevel(2));
+                .startLevel(START_LEVEL_TWO));
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.eventadmin").versionAsInProject().startLevel(
-                1));
+                        START_LEVEL_ONE));
         options.add(mavenBundle("org.apache.felix",
                 "org.apache.felix.gogo.runtime").start().versionAsInProject());
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.metatype")
                 .versionAsInProject());
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.prefs")
-                .versionAsInProject().startLevel(3));
+                .versionAsInProject().startLevel(START_LEVEL_THREE));
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.log")
-                .versionAsInProject().startLevel(1));
+                .versionAsInProject().startLevel(START_LEVEL_ONE));
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.scr")
-                .versionAsInProject().startLevel(2));
+                .versionAsInProject().startLevel(START_LEVEL_TWO));
         options.add(mavenBundle("org.apache.felix", "org.apache.felix.resolver")
-                .version("1.0.0").startLevel(2));
+                .version("1.0.0").startLevel(START_LEVEL_TWO));
         options.add(mavenBundle("org.apache.felix",
-                "org.apache.felix.coordinator").version("1.0.0").startLevel(2));
+                "org.apache.felix.coordinator").version("1.0.0").startLevel(START_LEVEL_TWO));
         options.add(frameworkProperty(
                 "org.osgi.framework.system.packages.extra").value(
                 "org.ops4j.pax.exam;version=\"" + PAX_EXAM_VERSION
@@ -221,10 +224,11 @@ public class PaxexamDefaultOptions {
 
     public static boolean isConsoleOn() {
         String port = System.getProperty(OSGI_CONSOLE_PROPERTY);
-        if (port != null && !port.isEmpty())
+        if (port != null && !port.isEmpty()) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
     public static boolean isEquinoxMars() {

@@ -173,7 +173,8 @@ public class ComponentCompendiumLifecycleTest {
         assertThat(stl.getServiceType(), typeCompatibleWith(Logger.class));
         assertThat(concreteComponent.getPreferencesService(), nullValue());
         assertThat(concreteComponent.getEventAdminService(), nullValue());
-        assertThat(concreteComponent.getLoggerService(), notNullValue());
+        assertThat(concreteComponent.getLogService(), nullValue());
+        assertThat(concreteComponent.getLogger(), notNullValue());
 
         verify(stl2).open();
 

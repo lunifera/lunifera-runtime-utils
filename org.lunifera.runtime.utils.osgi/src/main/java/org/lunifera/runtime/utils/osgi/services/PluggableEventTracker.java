@@ -48,7 +48,7 @@ public abstract class PluggableEventTracker {
     private List<String> topics;
 
     public PluggableEventTracker(BundleContext bundleContext) {
-        this(bundleContext, null, null);
+        this(bundleContext, null, "");
     }
 
     public PluggableEventTracker(BundleContext bundleContext, String[] topics) {

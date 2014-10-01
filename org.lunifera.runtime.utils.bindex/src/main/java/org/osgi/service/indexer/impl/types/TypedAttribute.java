@@ -13,7 +13,10 @@ package org.osgi.service.indexer.impl.types;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
+/*
+ * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
+ * and it is released under OSGi Specification License, VERSION 2.0
+ */
 import org.osgi.service.indexer.impl.Schema;
 import org.osgi.service.indexer.impl.util.Tag;
 
@@ -37,7 +40,7 @@ public class TypedAttribute {
 		Tag tag = new Tag(Schema.ELEM_ATTRIBUTE);
 		tag.addAttribute(Schema.ATTR_NAME, name);
 
-		if (type.isList() || type.getType() != ScalarType.String) {
+		if (type.isList() || type.getType() != ScalarType.STRING) {
 			tag.addAttribute(Schema.ATTR_TYPE, type.toString());
 		}
 

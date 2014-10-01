@@ -13,13 +13,16 @@ package org.osgi.service.indexer.impl.types;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
+/*
+ * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
+ * and it is released under OSGi Specification License, VERSION 2.0
+ */
 import org.osgi.framework.Constants;
 import org.osgi.service.indexer.Namespaces;
 
 public enum VersionKey {
 
-	PackageVersion(Constants.VERSION_ATTRIBUTE), BundleVersion(Constants.BUNDLE_VERSION_ATTRIBUTE), NativeOsVersion(Namespaces.ATTR_NATIVE_OSVERSION);
+	PACKAGEVERSION(Constants.VERSION_ATTRIBUTE), BUNDLEVERSION(Constants.BUNDLE_VERSION_ATTRIBUTE), NativeOsVersion(Namespaces.ATTR_NATIVE_OSVERSION);
 
 	private String key;
 

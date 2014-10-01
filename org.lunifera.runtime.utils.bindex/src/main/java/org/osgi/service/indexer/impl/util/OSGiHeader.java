@@ -34,7 +34,7 @@ public class OSGiHeader {
 	 * 
 	 * @param value
 	 *            A string
-	 * @return a Map<String,Map<String,String>>
+	 * @return a Map<STRING,Map<STRING,STRING>>
 	 */
 	static public Map<String, Map<String, String>> parseHeader(String value, Reporter logger) {
 		if (value == null || value.trim().length() == 0)

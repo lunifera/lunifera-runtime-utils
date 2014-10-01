@@ -13,12 +13,15 @@ package org.osgi.service.indexer.impl.types;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
+/*
+ * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
+ * and it is released under OSGi Specification License, VERSION 2.0
+ */
 import java.util.Collection;
 
 import org.osgi.framework.Version;
 
-class Type {
+final class Type {
 
 	private final ScalarType type;
 	private final boolean list;
@@ -36,15 +39,15 @@ class Type {
 		if (value == null) {
 			throw new NullPointerException("Null values not supported.");
 		} else if (value instanceof Version) {
-			result = scalar(ScalarType.Version);
+			result = scalar(ScalarType.VERSION);
 		} else if (value instanceof Double || value instanceof Float) {
-			result = scalar(ScalarType.Double);
+			result = scalar(ScalarType.DOUBLE);
 		} else if (value instanceof Number) {
-			result = scalar(ScalarType.Long);
+			result = scalar(ScalarType.LONG);
 		} else if (value instanceof String) {
-			result = scalar(ScalarType.String);
+			result = scalar(ScalarType.STRING);
 		} else if (value instanceof Boolean) {
-			result = scalar(ScalarType.String);
+			result = scalar(ScalarType.STRING);
 		} else if (value instanceof Collection<?>) {
 			Collection<?> coll = (Collection<?>) value;
 			if (coll.isEmpty())
@@ -72,7 +75,7 @@ class Type {
 
 	@Override
 	public String toString() {
-		return list ? "List<" + type.name() + ">" : type.name();
+		return list ? "List<" + type.getKey() + ">" : type.getKey();
 	}
 
 	public String convertToString(Object value) {

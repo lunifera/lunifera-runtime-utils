@@ -33,6 +33,11 @@ public class ContributionItemDefaultImpl implements ContributionItem {
     }
 
     public ContributionItemDefaultImpl(ContributorBundle contributorBundle,
+            Map<String, Object> properties) {
+        this(contributorBundle, null, properties);
+    }
+    
+    public ContributionItemDefaultImpl(ContributorBundle contributorBundle,
             URL resourceLocation, Map<String, Object> properties) {
         this.contributionResourceFileLocation = resourceLocation;
         this.contributorBundle = contributorBundle;

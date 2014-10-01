@@ -1,7 +1,7 @@
 /*
  * Copyright (c) OSGi Alliance (2002, 2006, 2007). All Rights Reserved.
  * 
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, VERSION 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -29,7 +29,10 @@ package org.osgi.service.indexer.impl.types;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
+/*
+ * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
+ * and it is released under OSGi Specification License, VERSION 2.0
+ */
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,8 +46,8 @@ public class VersionRange implements Comparable<VersionRange> {
 	char start = '[';
 	char end = ']';
 
-	static String V = "[0-9]+(\\.[0-9]+(\\.[0-9]+(\\.[a-zA-Z0-9_-]+)?)?)?";
-	static Pattern RANGE = Pattern.compile("(\\(|\\[)\\s*(" + V + ")\\s*,\\s*(" + V + ")\\s*(\\)|\\])");
+	static final String V = "[0-9]+(\\.[0-9]+(\\.[0-9]+(\\.[a-zA-Z0-9_-]+)?)?)?";
+	static final Pattern RANGE = Pattern.compile("(\\(|\\[)\\s*(" + V + ")\\s*,\\s*(" + V + ")\\s*(\\)|\\])");
 
 	public VersionRange(boolean lowInclusive, Version low, Version high, boolean highInclusive) {
 		if (low.compareTo(high) > 0)

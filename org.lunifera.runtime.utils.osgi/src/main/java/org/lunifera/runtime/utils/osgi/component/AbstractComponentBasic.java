@@ -38,9 +38,9 @@ import com.google.common.base.Objects;
  */
 public abstract class AbstractComponentBasic {
 
-    public static String COMPONENT_ID = ComponentConstants.COMPONENT_ID;
-    public static String COMPONENT_NAME = ComponentConstants.COMPONENT_NAME;
-    public static String COMPONENT_DESCRIPTION = "component.description";
+    public final static String COMPONENT_ID = ComponentConstants.COMPONENT_ID;
+    public final static String COMPONENT_NAME = ComponentConstants.COMPONENT_NAME;
+    public final static String COMPONENT_DESCRIPTION = "component.description";
 
     /**
      * The {@link BundleContext} that could be accessed inclusive in the bind

@@ -73,7 +73,7 @@ public class TestJarResource extends TestCase {
 		JarResource resource = new JarResource(new File(getClass()
                 .getResource("/testdata/01-bsn+version.jar").getPath()));
 		Manifest manifest = resource.getManifest();
-		assertEquals("org.example.a", manifest.getMainAttributes().getValue("Bundle-SymbolicName"));
+		assertEquals("org.example.a", manifest.getMainAttributes().getValue("BUNDLE-SymbolicName"));
 	}
 
 }

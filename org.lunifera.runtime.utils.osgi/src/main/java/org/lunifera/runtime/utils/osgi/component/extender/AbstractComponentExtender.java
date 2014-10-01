@@ -142,8 +142,9 @@ public abstract class AbstractComponentExtender extends
 
         if (stateMaskLoc instanceof Integer && (Integer) stateMaskLoc != 0) {
             stateMask = (int) stateMaskLoc;
-        } else
+        } else {
             stateMask = Bundle.ACTIVE;
+        }
     }
 
     protected final ContributionHandlerService getContributionHandlerService() {

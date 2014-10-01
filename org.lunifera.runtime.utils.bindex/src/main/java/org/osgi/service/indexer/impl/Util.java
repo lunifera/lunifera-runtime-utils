@@ -15,7 +15,7 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,11 +48,11 @@ public class Util {
 
 		String header = manifest.getMainAttributes().getValue(Constants.BUNDLE_SYMBOLICNAME);
 		if (header == null)
-			throw new IllegalArgumentException("Not an OSGi R4+ bundle: missing 'Bundle-SymbolicName' entry from manifest.");
+			throw new IllegalArgumentException("Not an OSGi R4+ bundle: missing 'BUNDLE-SymbolicName' entry from manifest.");
 
 		Map<String, Map<String, String>> map = OSGiHeader.parseHeader(header);
 		if (map.size() != 1)
-			throw new IllegalArgumentException("Invalid format for Bundle-SymbolicName header.");
+			throw new IllegalArgumentException("Invalid format for BUNDLE-SymbolicName header.");
 
 		Entry<String, Map<String, String>> entry = map.entrySet().iterator().next();
 		return new SymbolicName(entry.getKey(), entry.getValue());
@@ -70,16 +70,16 @@ public class Util {
 	public static MimeType getMimeType(Resource resource) throws IOException {
 		Manifest manifest = resource.getManifest();
 		if (manifest == null)
-			return MimeType.Jar;
+			return MimeType.JAR;
 		String bsn = manifest.getMainAttributes().getValue(Constants.BUNDLE_SYMBOLICNAME);
 		if (bsn == null)
-			return MimeType.Jar;
+			return MimeType.JAR;
 
 		String fragmentHost = manifest.getMainAttributes().getValue(Constants.FRAGMENT_HOST);
 		if (fragmentHost != null)
-			return MimeType.Fragment;
+			return MimeType.FRAGMENT;
 
-		return MimeType.Bundle;
+		return MimeType.BUNDLE;
 	}
 
 	public static void addVersionFilter(StringBuilder filter, VersionRange version, VersionKey key) {
@@ -139,15 +139,15 @@ public class Util {
 	}
 
 	private static Object parseScalarValue(String value, String typeStr) throws IllegalArgumentException {
-		ScalarType type = Enum.valueOf(ScalarType.class, typeStr);
+		ScalarType type = ScalarType.fromString(typeStr);
 		switch (type) {
-		case String:
+		case STRING:
 			return value;
-		case Long:
+		case LONG:
 			return Long.valueOf(value);
-		case Double:
+		case DOUBLE:
 			return Double.valueOf(value);
-		case Version:
+		case VERSION:
 			return new Version(value);
 		default:
 			throw new IllegalArgumentException(typeStr);
@@ -171,7 +171,7 @@ public class Util {
 					typeStr = key.substring(colonIndex + 1);
 				} else {
 					name = key;
-					typeStr = ScalarType.String.name();
+					typeStr = ScalarType.STRING.getKey();
 				}
 
 				Object value = Util.parseValue(attrib.getValue(), typeStr);

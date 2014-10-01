@@ -15,10 +15,13 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 public enum MimeType {
-	Bundle("application/vnd.osgi.bundle"), Fragment("application/vnd.osgi.bundle"), Jar("application/java-archive");
+	BUNDLE("application/vnd.osgi.bundle"), 
+	FRAGMENT("application/vnd.osgi.bundle"),
+	SUBSYSTEM("application/vnd.osgi.subsystem"),
+	JAR("application/java-archive");
 
 	private String mimeType;
 

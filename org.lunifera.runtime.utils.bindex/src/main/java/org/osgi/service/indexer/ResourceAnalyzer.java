@@ -15,7 +15,7 @@ package org.osgi.service.indexer;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.util.List;
 
@@ -25,7 +25,7 @@ import org.osgi.annotation.versioning.ConsumerType;
  * <p>
  * A resource analyzer is responsible for analyzing a resource for some specific
  * purpose, and discovering requirements and capabilities that may not be
- * discovered by the basic Bundle Analyzer.
+ * discovered by the basic BUNDLE Analyzer.
  * </p>
  * 
  * <p>

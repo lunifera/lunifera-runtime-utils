@@ -1,7 +1,7 @@
 /*
  * Copyright (c) OSGi Alliance (2002, 2006, 2007). All Rights Reserved.
  * 
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, VERSION 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -28,7 +28,10 @@ package org.osgi.service.indexer.impl.util;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
+/*
+ * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
+ * and it is released under OSGi Specification License, VERSION 2.0
+ */
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -41,7 +44,7 @@ import java.util.Vector;
 /**
  * The Tag class represents a minimal XML tree. It consist of a named element
  * with a hashtable of named attributes. Methods are provided to walk the tree
- * and get its constituents. The content of a Tag is a list that contains String
+ * and get its constituents. The content of a Tag is a list that contains STRING
  * objects or other Tag objects.
  */
 public class Tag {
@@ -191,7 +194,7 @@ public class Tag {
 	}
 
 	/**
-	 * Return the whole contents as a String (no tag info and attributes).
+	 * Return the whole contents as a STRING (no tag info and attributes).
 	 */
 	public String getContentsAsString() {
 		StringBuffer sb = new StringBuffer();

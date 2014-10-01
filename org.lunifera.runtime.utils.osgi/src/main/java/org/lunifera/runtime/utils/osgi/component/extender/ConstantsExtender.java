@@ -51,9 +51,9 @@ public interface ConstantsExtender {
     
     String RESOURCE_TYPE_SINGLE_CLASS_NAME = "single_class_name";
 
-    public static final String EXTENDER_CONTRIBUTOR_BUNDLE_NAME = "lunifera.extender.contributor.bundle";
+    String EXTENDER_CONTRIBUTOR_BUNDLE_NAME = "lunifera.extender.contributor.bundle";
 
-    public static final String EXTENDER_CONTRIBUTOR_BUNDLE_VERSION = "lunifera.extender.contributor.bundle.version";
+    String EXTENDER_CONTRIBUTOR_BUNDLE_VERSION = "lunifera.extender.contributor.bundle.version";
 
-    public static final String EXTENDER_CONTRIBUTOR_ITEM = "lunifera.extender.contributor.item";
+    String EXTENDER_CONTRIBUTOR_ITEM = "lunifera.extender.contributor.item";
 }

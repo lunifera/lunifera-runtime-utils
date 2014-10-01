@@ -15,7 +15,7 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -129,7 +129,7 @@ public class SCRAnalyzer implements ResourceAnalyzer {
 		filter.append('(').append(Namespaces.NS_EXTENDER).append('=').append(Namespaces.EXTENDER_SCR).append(')');
 
 		filter.insert(0, "(&");
-		Util.addVersionFilter(filter, range, VersionKey.PackageVersion);
+		Util.addVersionFilter(filter, range, VersionKey.PACKAGEVERSION);
 		filter.append(')');
 
 		builder.addDirective(Namespaces.DIRECTIVE_FILTER, filter.toString()).addDirective(Namespaces.DIRECTIVE_EFFECTIVE, Namespaces.EFFECTIVE_ACTIVE);

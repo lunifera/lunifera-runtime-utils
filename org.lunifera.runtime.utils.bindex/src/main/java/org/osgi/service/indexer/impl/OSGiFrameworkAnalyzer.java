@@ -15,7 +15,7 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.util.List;
 
@@ -84,7 +84,7 @@ public class OSGiFrameworkAnalyzer implements ResourceAnalyzer {
 	 * specification release version
 	 * 
 	 * @param pv
-	 *            Version of the {@code org.osgi.framework} packge
+	 *            VERSION of the {@code org.osgi.framework} packge
 	 * @return The OSGi specification release version, or {@code null} if not
 	 *         known.
 	 */

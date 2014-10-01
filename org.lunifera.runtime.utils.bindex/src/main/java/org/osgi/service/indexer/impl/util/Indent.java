@@ -13,14 +13,17 @@ package org.osgi.service.indexer.impl.util;
  * http://www.eclipse.org/org/documents/edl-v10.php.
  * #L%
  */
-
+/*
+ * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
+ * and it is released under OSGi Specification License, VERSION 2.0
+ */
 import java.io.PrintWriter;
 import java.util.Arrays;
 
 /**
  * Represents an indent in a file
  */
-public class Indent {
+public final class Indent {
 	/** the platform specific EOL */
 	static private String eol = String.format("%n");
 

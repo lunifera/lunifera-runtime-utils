@@ -24,6 +24,11 @@ public class ContributionItemConfigAdminImpl extends
     private boolean usingFactoryConfiguration;
 
     private final String targetPID;
+    
+    private static final int GROUP_BSN = 3;
+    private static final int GROUP_PID = 1;
+    private static final int GROUP_VERSION = 5;
+    private static final int GROUP_LOCATION = 5;
 
     public ContributionItemConfigAdminImpl(
             ContributorBundle contributorBundleTrackerObject,
@@ -59,10 +64,10 @@ public class ContributionItemConfigAdminImpl extends
             throw new ExceptionComponentExtenderSetup("Resource '" + configFile
                     + "' is not in the expected format.");
         }
-        String pid = matcher.group(1);
-        String bsn = matcher.group(3);
-        String version = matcher.group(5);
-        String location = matcher.group(10);
+        String pid = matcher.group(GROUP_PID);
+        String bsn = matcher.group(GROUP_BSN);
+        String version = matcher.group(GROUP_VERSION);
+        String location = matcher.group(GROUP_LOCATION);
         // String extension = matcher.group(11);
 
         // it is a Factory configuration ?

@@ -15,7 +15,7 @@ package org.osgi.service.indexer.impl;
  */
 /*
  * Part of this code was borrowed from BIndex project (https://github.com/osgi/bindex) 
- * and it is released under OSGi Specification License, Version 2.0
+ * and it is released under OSGi Specification License, VERSION 2.0
  */
 import java.io.File;
 import java.io.IOException;
@@ -54,8 +54,8 @@ public class BundleAnalyzer implements ResourceAnalyzer {
 
 	// Duplicate these constants here to avoid a compile-time dependency on OSGi
 	// R4.3
-	private static final String PROVIDE_CAPABILITY = "Provide-Capability";
-	private static final String REQUIRE_CAPABILITY = "Require-Capability";
+	private static final String PROVIDE_CAPABILITY = "Provide-CAPABILITY";
+	private static final String REQUIRE_CAPABILITY = "Require-CAPABILITY";
 
 	// Obsolete OSGi constants
 	private static final String IMPORT_SERVICE_AVAILABILITY = "availability:";
@@ -73,7 +73,7 @@ public class BundleAnalyzer implements ResourceAnalyzer {
 
 	public void analyzeResource(Resource resource, List<Capability> capabilities, List<Requirement> requirements) throws Exception {
 		MimeType mimeType = Util.getMimeType(resource);
-		if (mimeType == MimeType.Bundle || mimeType == MimeType.Fragment) {
+		if (mimeType == MimeType.BUNDLE || mimeType == MimeType.FRAGMENT) {
 			doBundleIdentity(resource, mimeType, capabilities);
 			doContent(resource, mimeType, capabilities);
 			doBundleAndHost(resource, capabilities);
@@ -100,10 +100,10 @@ public class BundleAnalyzer implements ResourceAnalyzer {
 
 		String type;
 		switch (mimeType) {
-		case Bundle:
+		case BUNDLE:
 			type = Namespaces.RESOURCE_TYPE_BUNDLE;
 			break;
-		case Fragment:
+		case FRAGMENT:
 			type = Namespaces.RESOURCE_TYPE_FRAGMENT;
 			break;
 		default:
@@ -315,7 +315,7 @@ public class BundleAnalyzer implements ResourceAnalyzer {
 			if (versionStr != null) {
 				VersionRange version = new VersionRange(versionStr);
 				filter.insert(0, "(&");
-				Util.addVersionFilter(filter, version, VersionKey.PackageVersion);
+				Util.addVersionFilter(filter, version, VersionKey.PACKAGEVERSION);
 				filter.append(")");
 			}
 
@@ -361,7 +361,7 @@ public class BundleAnalyzer implements ResourceAnalyzer {
 			if (versionStr != null) {
 				VersionRange version = new VersionRange(versionStr);
 				filter.insert(0, "(&");
-				Util.addVersionFilter(filter, version, VersionKey.BundleVersion);
+				Util.addVersionFilter(filter, version, VersionKey.BUNDLEVERSION);
 				filter.append(")");
 			}
 
@@ -381,7 +381,7 @@ public class BundleAnalyzer implements ResourceAnalyzer {
 			StringBuilder filter = new StringBuilder();
 			Map<String, Map<String, String>> fragmentList = OSGiHeader.parseHeader(fragmentHost);
 			if (fragmentList.size() != 1)
-				throw new IllegalArgumentException("Invalid Fragment-Host header: cannot contain multiple entries");
+				throw new IllegalArgumentException("Invalid FRAGMENT-Host header: cannot contain multiple entries");
 			Entry<String, Map<String, String>> entry = fragmentList.entrySet().iterator().next();
 
 			String bsn = entry.getKey();
@@ -389,7 +389,7 @@ public class BundleAnalyzer implements ResourceAnalyzer {
 
 			String versionStr = entry.getValue().get(Constants.BUNDLE_VERSION_ATTRIBUTE);
 			VersionRange version = versionStr != null ? new VersionRange(versionStr) : new VersionRange(Version.emptyVersion.toString());
-			Util.addVersionFilter(filter, version, VersionKey.BundleVersion);
+			Util.addVersionFilter(filter, version, VersionKey.BUNDLEVERSION);
 			filter.append(")");
 
 			Builder builder = new Builder().setNamespace(Namespaces.NS_WIRING_HOST).addDirective(Namespaces.DIRECTIVE_FILTER, filter.toString());
