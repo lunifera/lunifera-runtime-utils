@@ -50,9 +50,8 @@
 	<modules>
 		<module>org.lunifera.runtime.utils.paxexam</module>
 		<module>org.lunifera.runtime.utils.osgi</module>
-		<module>org.lunifera.runtime.utils.osgi.logging</module>
-		<module>org.lunifera.runtime.utils.bindex.subsystems</module>
 		<module>org.lunifera.runtime.utils.bindex</module>
+		<module>org.lunifera.runtime.utils.bindex.subsystems</module>
 	</modules>
 
 	<profiles>
