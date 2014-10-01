@@ -31,9 +31,11 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.PreferencesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * An abstract class to be inherited by components that requires a logging, an
@@ -62,6 +64,8 @@ public abstract class AbstractComponentWithCompendium extends
      */
     private final AtomicReference<ConfigurationAdmin> configAdminServiceRef = new AtomicReference<ConfigurationAdmin>();
 
+    private boolean enableInnerServiceTrackers = false;
+
     /**
      * Holds an atomic reference of a {@link EventAdmin} service.
      */
@@ -75,22 +79,23 @@ public abstract class AbstractComponentWithCompendium extends
      */
     private Set<PluggableEventTracker> eventTrackers = null;
 
-    private boolean enableInnerServiceTrackers = false;
+    @SuppressWarnings("rawtypes")
+    private Map<Class<?>, PluggableServiceTracker> innerPluggableServiceTrackers = null;
+
+    private Logger logger;
 
     /**
-     * Holds an atomic reference for the logging service {@link Logger}. Repair
-     * that this service is not the one provided by OSGi, we are using the SLF4J
-     * interface that is more complete and give us more flexibilities on report.
+     * Holds an atomic reference for an OSGi logging service {@link LogService}.
+     * <p>
+     * When a log service were not tied, then SLF4j {@link Logger} will be used
+     * instead.
      */
-    private final AtomicReference<Logger> loggerServiceRef = new AtomicReference<Logger>();
+    private final AtomicReference<LogService> logServiceRef = new AtomicReference<LogService>();
 
     /**
      * Holds an atomic reference of a {@link PreferencesService} service.
      */
     private final AtomicReference<PreferencesService> preferencesServiceRef = new AtomicReference<PreferencesService>();
-
-    @SuppressWarnings("rawtypes")
-    private Map<Class<?>, PluggableServiceTracker> innerPluggableServiceTrackers = null;
 
     /**
      * DS needs a default constructor.
@@ -132,7 +137,8 @@ public abstract class AbstractComponentWithCompendium extends
 
         super.activate(context);
 
-        trace("({}) - Starting activation of component {}(v{}) -> {}.", getId(), getName(), getVersion(), getLocation());
+        trace("({}) - Starting activation of component {}(v{}) -> {}.",
+                getId(), getName(), getVersion(), getLocation());
         trace("({}) - Processing annotations...", getId());
         doRuntimeAnnotationsProcessing();
 
@@ -208,9 +214,9 @@ public abstract class AbstractComponentWithCompendium extends
      * 
      * @param logger
      */
-    protected void bindLoggerService(Logger logger) {
-        this.loggerServiceRef.set(logger);
-        trace("({}) - Bound Logger for component '{}'.", getId(), this
+    protected void bindLoggerService(LogService logService) {
+        this.logServiceRef.set(logService);
+        trace("({}) - Bound LogService for component '{}'.", getId(), this
                 .getClass().getName());
     }
 
@@ -277,12 +283,31 @@ public abstract class AbstractComponentWithCompendium extends
         super.deactivate(context);
     }
 
-    public final void debug(String msg) {
-        getLoggerService().debug(msg);
+    /**
+     * Log a message using the DEBUG level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param message
+     */
+    public final void debug(String message) {
+        getLogger().debug(message);
     }
 
+    /**
+     * Log a message using the DEBUG level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param format
+     * @param arguments
+     */
     public final void debug(String format, Object... arguments) {
-        getLoggerService().debug(format, arguments);
+        getLogger().debug(format, arguments);
     }
 
     /**
@@ -410,12 +435,56 @@ public abstract class AbstractComponentWithCompendium extends
 
     }
 
-    public final void error(String msg) {
-        getLoggerService().error(msg);
+    /**
+     * Log a message using the ERROR level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param message
+     */
+    public final void error(String message) {
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_ERROR, message);
+        } else {
+            getLogger().error(message);
+        }
     }
 
+    /**
+     * Log a message using the ERROR level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param message
+     */
+    public final void error(String format, Object... arguments) {
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_ERROR,
+                    MessageFormatter.format(format, arguments).getMessage());
+        } else {
+            getLogger().error(format, arguments);
+        }
+    }
+
+    /**
+     * Log a message using the ERROR level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param message
+     */
     public final void error(String message, Throwable throwable) {
-        getLoggerService().error(message, throwable);
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_ERROR, message, throwable);
+        } else {
+            getLogger().error(message, throwable);
+        }
     }
 
     /**
@@ -443,33 +512,6 @@ public abstract class AbstractComponentWithCompendium extends
         return eventTrackers;
     }
 
-    /**
-     * A method that returns the {@link Logger} service instance.
-     * <p>
-     * If no Logger service were registered this method will return an instance
-     * created by the {@link LoggerFactory} factory class.
-     *
-     * @return a non null logger object.
-     */
-    protected final Logger getLoggerService() {
-        if (loggerServiceRef.get() == null) {
-            loggerServiceRef.set(LoggerFactory.getLogger(this.getClass()));
-        }
-        return loggerServiceRef.get();
-    }
-
-    /**
-     * A method that returns the {@link PreferencesService} instance.
-     * <p>
-     * It can be null;
-     * 
-     * @return the preference service instance
-     */
-    protected final PreferencesService getPreferencesService() {
-
-        return preferencesServiceRef.get();
-    }
-
     @SuppressWarnings("unchecked")
     protected final <S> PluggableServiceTracker<S> getInnerPluggableServiceTracker(
             Class<S> serviceInterface) {
@@ -484,12 +526,78 @@ public abstract class AbstractComponentWithCompendium extends
         return innerPluggableServiceTrackers;
     }
 
-    protected final void info(String msg) {
-        getLoggerService().info(msg);
+    /**
+     * A method that returns an {@link Logger} instance for the current class.
+     * <p>
+     */
+    protected final Logger getLogger() {
+        if (logger == null){
+            logger = LoggerFactory.getLogger(this.getClass());
+        }
+        return logger;
     }
 
-    protected final void info(String format, Object... arguments) {
-        getLoggerService().info(format, arguments);
+    /**
+     * A method that returns the bound {@link LogService} instance.
+     * <p>
+     * If no Logger service were registered this method will return an instance
+     * created by the {@link LoggerFactory} factory class.
+     *
+     * @return a non null logger object.
+     */
+    protected final LogService getLogService() {
+        if (logServiceRef.get() != null) {
+            return logServiceRef.get();
+        } else
+            return null;
+    }
+
+    /**
+     * A method that returns the {@link PreferencesService} instance.
+     * <p>
+     * It can be null;
+     * 
+     * @return the preference service instance
+     */
+    protected final PreferencesService getPreferencesService() {
+
+        return preferencesServiceRef.get();
+    }
+
+    /**
+     * Log a message using the INFO level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param message
+     */
+    public final void info(String message) {
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_INFO, message);
+        } else {
+            getLogger().info(message);
+        }
+    }
+
+    /**
+     * Log a message using the INFO level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param format
+     * @param arguments
+     */
+    public final void info(String format, Object... arguments) {
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_INFO,
+                    MessageFormatter.format(format, arguments).getMessage());
+        } else {
+            getLogger().info(format, arguments);
+        }
     }
 
     protected final boolean isIgnoreTrackers() {
@@ -557,12 +665,46 @@ public abstract class AbstractComponentWithCompendium extends
         sendEvent(eventTopic, properties);
     }
 
-    public final void trace(String msg) {
-        getLoggerService().trace(msg);
+    /**
+     * Log a message using the TRACE level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * <p>
+     * As {@link LogService} doesn't have a trace() method it will be used the
+     * debug() instead.
+     * 
+     * @param message
+     */
+    public final void trace(String message) {
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_DEBUG, message);
+        } else {
+            getLogger().trace(message);
+        }
     }
 
+    /**
+     * Log a message using the TRACE level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * <p>
+     * As {@link LogService} doesn't have a trace() method it will be used the
+     * debug() instead.
+     * 
+     * @param format
+     * @param arguments
+     */
     public final void trace(String format, Object... arguments) {
-        getLoggerService().trace(format, arguments);
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_DEBUG,
+                    MessageFormatter.format(format, arguments).getMessage());
+        } else {
+            getLogger().trace(format, arguments);
+        }
     }
 
     /**
@@ -660,15 +802,15 @@ public abstract class AbstractComponentWithCompendium extends
     }
 
     /**
-     * Method called by the DS or other to unbind an instance of {@link Logger}
-     * service.
+     * Method called by the DS or other to unbind an instance of
+     * {@link LogService} service.
      * 
-     * @param logger
+     * @param logService
      */
-    protected final void unbindLoggerService(Logger logger) {
-        trace("({}) - Unbound Logger for component '{}'.", getId(), this
+    protected final void unbindLogService(LogService logService) {
+        trace("({}) - Unbound LogService for component '{}'.", getId(), this
                 .getClass().getName());
-        loggerServiceRef.compareAndSet(logger, null);
+        logServiceRef.compareAndSet(logService, null);
     }
 
     /**
@@ -696,11 +838,40 @@ public abstract class AbstractComponentWithCompendium extends
         }
     }
 
-    public final void warn(String msg) {
-        getLoggerService().warn(msg);
+    /**
+     * Log a message using the WARN level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param message
+     */
+    public final void warn(String message) {
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_WARNING, message);
+        } else {
+            getLogger().warn(message);
+        }
     }
 
+    /**
+     * Log a message using the WARN level.
+     * <p>
+     * When a {@link LogService} instance is bound to this instance it will be
+     * used to log the message, otherwise a SLF4J's {@link Logger} instance will
+     * be used.
+     * 
+     * @param format
+     * @param arguments
+     */
     public final void warn(String format, Object... arguments) {
-        getLoggerService().warn(format, arguments);
+        getLogger().warn(format, arguments);
+        if (getLogService() != null) {
+            getLogService().log(LogService.LOG_WARNING,
+                    MessageFormatter.format(format, arguments).getMessage());
+        } else {
+            getLogger().warn(format, arguments);
+        }
     }
 }
